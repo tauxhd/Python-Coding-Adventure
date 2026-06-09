@@ -55,13 +55,6 @@
   <!-- Right controls: Play + Bag + desktop nav links + hamburger -->
   <div class="nav-right-controls">
     <% if (user && !user.is_admin) { %>
-      <!-- Play — always visible (not inside hamburger) -->
-      <a href="/game/lobby" class="nav-link nav-play">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polygon points="5 3 19 12 5 21 5 3"></polygon>
-        </svg>
-        Play
-      </a>
       <!-- Bag — icon only on mobile (text hidden via CSS) -->
       <a href="/bag" class="bag-btn" title="Inventory">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -142,6 +135,18 @@
     <% } %>
   </div>
 </nav>
+
+<% if (user && !user.is_admin) { %>
+<!-- Mobile Play Bar — shown only on mobile below navbar -->
+<div class="mobile-play-bar">
+  <a href="/game/lobby" class="mobile-play-btn">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+      <polygon points="5 3 19 12 5 21 5 3"></polygon>
+    </svg>
+    Play Now
+  </a>
+</div>
+<% } %>
 
 <!-- Elixir Purchase Modal -->
 <div id="elixir-modal" class="elixir-modal" style="display:none;">

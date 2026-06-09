@@ -775,6 +775,9 @@ a:hover { color: var(--gold); }
   position: relative; /* dropdown anchors here */
 }
 
+/* Mobile play bar — hidden on desktop */
+.mobile-play-bar { display: none; }
+
 /* Hamburger toggle button — mobile only */
 .nav-hamburger {
   display: none;
@@ -801,11 +804,44 @@ a:hover { color: var(--gold); }
   /* Shrink XP bar a bit so it fits */
   .xp-bar-small { width: 55px; }
 
-  /* Condense hud-stats on mobile */
+  /* Condense hud-stats on mobile — keep rank icon, hide name */
   .hud-stats { gap: 0.4rem; padding: 0.35rem 0.6rem; flex-wrap: nowrap; }
-  .rank-hud-section { display: none; } /* hide rank badge+name, keep xp+elixir */
+  .rank-hud-name { display: none; } /* name already hidden at 1024px, keep image */
 
   .nav-hamburger { display: block; }
+
+  /* Play bar below navbar */
+  .mobile-play-bar {
+    display: flex;
+    padding: 0.55rem 1rem;
+    background: linear-gradient(180deg, rgba(12,8,25,0.97), rgba(8,5,18,0.99));
+    border-bottom: 1px solid rgba(240,192,64,0.18);
+  }
+  .mobile-play-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    width: 100%;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, #3a1e8a, #7b3fff);
+    border: 1px solid rgba(240,192,64,0.35);
+    border-radius: 10px;
+    color: var(--gold);
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-decoration: none;
+    box-shadow: 0 0 22px rgba(123,63,255,0.45), inset 0 1px 0 rgba(255,255,255,0.08);
+    transition: all 0.2s;
+  }
+  .mobile-play-btn:hover {
+    box-shadow: 0 0 32px rgba(123,63,255,0.65);
+    transform: translateY(-1px);
+    color: var(--gold);
+  }
 
   /* Dropdown: nav links panel */
   .navbar-links {
