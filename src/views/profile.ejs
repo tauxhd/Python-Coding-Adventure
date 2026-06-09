@@ -213,6 +213,31 @@
     }
     .no-points { color: var(--text-muted); font-size: 0.78rem; text-align: center; padding-top: 0.5rem; }
 
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      .profile-wrap { padding: 1.25rem 0.75rem 3rem; }
+
+      .profile-header {
+        flex-direction: column;
+        text-align: center;
+        padding: 1.25rem 1rem;
+        gap: 0.9rem;
+      }
+      .profile-info h1 { font-size: 1.25rem; }
+      .profile-info .meta { justify-content: center; }
+      .profile-info .meta img { height: 28px !important; width: 28px !important; }
+      .profile-info .meta span { font-size: 0.82rem !important; }
+      .profile-currencies { justify-content: center; flex-wrap: wrap; gap: 0.6rem; }
+
+      .avatar-big { width: 64px; height: 64px; font-size: 1.5rem; }
+
+      .xp-label { font-size: 0.7rem; }
+
+      .rankup-banner { flex-direction: column; text-align: center; gap: 0.5rem; padding: 1rem; }
+
+      .attr-desc { display: none; }
+    }
+
     /* ── RANK LADDER ── */
     .rank-ladder { display: flex; flex-direction: column; gap: 0.5rem; }
     .rank-step {
