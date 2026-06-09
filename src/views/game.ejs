@@ -52,6 +52,7 @@
     <div class="turn-indicator" id="turn-indicator">
       <%= game.current_turn_id === currentUserId ? "⚔ Your Turn" : "⏳ Opponent's Turn" %>
     </div>
+    <button class="exit-game-btn" onclick="exitGame()">✕ Forfeit</button>
   </div>
 
   <div class="hud-player right" id="hud-opp">

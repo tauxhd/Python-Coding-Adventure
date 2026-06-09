@@ -28,6 +28,29 @@
 .pos-text { font-size: 0.78rem; color: var(--text-muted); font-family: 'Cinzel', serif; }
 
 .hud-center { text-align: center; flex-shrink: 0; }
+
+.exit-game-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.5rem;
+  padding: 0.28rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255,77,106,0.4);
+  background: rgba(255,77,106,0.08);
+  color: var(--red);
+  font-family: 'Cinzel', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.exit-game-btn:hover {
+  background: rgba(255,77,106,0.2);
+  border-color: var(--red);
+  box-shadow: 0 0 10px rgba(255,77,106,0.25);
+}
 .room-pill {
   font-family: 'Cinzel', serif;
   font-size: 0.7rem;

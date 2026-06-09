@@ -228,17 +228,38 @@ socket.on('card-outcome', ({ userId, outcome, message }) => {
   }
 });
 
-socket.on('game-over', ({ winnerId, state }) => {
+socket.on('game-over', ({ winnerId, forfeited, forfeitedBy, state }) => {
   updateHP(state.p1State, state.p2State);
   const won = winnerId === CURRENT_USER_ID;
+  const iForfeited = forfeitedBy === CURRENT_USER_ID;
+
   document.getElementById('gameover-title').textContent = won ? '🏆 Victory!' : '💀 Defeated';
-  document.getElementById('gameover-sub').textContent = won
-    ? 'You have conquered the arena! +15 XP awarded.'
-    : 'Your opponent was stronger this time. +2 XP awarded.';
   document.getElementById('gameover-title').style.color = won ? 'var(--gold)' : 'var(--red)';
+
+  if (forfeited) {
+    document.getElementById('gameover-sub').textContent = iForfeited
+      ? 'You forfeited the match. +1 XP awarded.'
+      : 'Your opponent forfeited — you win! +15 XP awarded.';
+  } else {
+    document.getElementById('gameover-sub').textContent = won
+      ? 'You have conquered the arena! +15 XP awarded.'
+      : 'Your opponent was stronger this time. +2 XP awarded.';
+  }
+
+  // Hide forfeit button so it can't be clicked on game-over screen
+  const exitBtn = document.querySelector('.exit-game-btn');
+  if (exitBtn) exitBtn.style.display = 'none';
+
   showPhase('gameover');
   addLog(won ? '🏆 YOU WIN!' : '💀 You were defeated.', true);
 });
+
+// ── Forfeit / exit ───────────────────────────────
+function exitGame() {
+  if (confirm('Forfeit this match? Your opponent will be declared the winner.')) {
+    socket.emit('forfeit-game', { roomCode: ROOM_CODE });
+  }
+}
 
 // ── Flash message overlay ────────────────────────
 function flashMessage(msg) {

@@ -576,6 +576,34 @@ function initGameSocket(io) {
       } catch (err) { console.error('use-item error:', err); }
     });
 
+    // ── FORFEIT GAME ───────────────────────────────────────
+    socket.on('forfeit-game', async ({ roomCode }) => {
+      try {
+        const userId = socket.request.session?.user?.id;
+        if (!userId) return;
+
+        const state = await getGameState(roomCode);
+        if (!state) return;
+        const { game } = state;
+
+        if (game.status !== 'active') return;
+
+        const opponentId = userId === game.player1_id ? game.player2_id : game.player1_id;
+
+        await db.query('UPDATE games SET status = ?, winner_id = ? WHERE id = ?', ['finished', opponentId, game.id]);
+        await db.query('UPDATE users SET xp = xp + 15 WHERE id = ?', [opponentId]);
+        await db.query('UPDATE users SET xp = xp + 1 WHERE id = ?', [userId]);
+
+        const { game: g2, p1State: p1, p2State: p2 } = await getGameState(roomCode);
+        io.to(roomCode).emit('game-over', {
+          winnerId: opponentId,
+          forfeited: true,
+          forfeitedBy: userId,
+          state: { game: g2, p1State: p1, p2State: p2 },
+        });
+      } catch (err) { console.error('forfeit-game error:', err); }
+    });
+
     socket.on('disconnect', () => {});
   });
 }
