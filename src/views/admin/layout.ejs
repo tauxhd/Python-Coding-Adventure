@@ -126,12 +126,71 @@
     .modal-box { background:var(--bg-card); border:1px solid var(--border-glow); border-radius:16px; padding:2rem; width:100%; max-width:560px; max-height:90vh; overflow-y:auto; }
     .modal-box h3 { font-size:1rem; margin-bottom:1.2rem; color:var(--gold); }
     .modal-close { float:right; cursor:pointer; color:var(--text-muted); font-size:1.2rem; }
+
+    /* Mobile toggle button */
+    .sidebar-toggle {
+      display: none;
+      position: fixed;
+      top: 0.75rem;
+      left: 0.75rem;
+      z-index: 300;
+      background: var(--bg-card);
+      border: 1px solid var(--border-glow);
+      border-radius: 8px;
+      padding: 0.45rem 0.6rem;
+      cursor: pointer;
+      color: var(--text-main);
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 150;
+    }
+    .sidebar-overlay.open { display: block; }
+
+    @media (max-width: 768px) {
+      .sidebar-toggle { display: block; }
+
+      .admin-sidebar {
+        position: fixed;
+        left: -240px;
+        top: 0;
+        z-index: 200;
+        height: 100vh;
+        transition: left 0.25s ease;
+        box-shadow: 4px 0 20px rgba(0,0,0,0.5);
+      }
+      .admin-sidebar.open { left: 0; }
+
+      .admin-main { padding: 1rem 0.75rem; padding-top: 3.5rem; }
+
+      .a-table-wrap { overflow-x: auto; }
+      table { min-width: 500px; }
+
+      .stat-chips { gap: 0.5rem; }
+      .stat-chip { min-width: 100px; padding: 0.75rem 0.9rem; }
+      .stat-chip .chip-val { font-size: 1.4rem; }
+
+      .modal-box { margin: 0.75rem; width: calc(100% - 1.5rem); padding: 1.25rem; }
+    }
+
+    @media (max-width: 480px) {
+      .admin-main { padding: 0.75rem; padding-top: 3.25rem; }
+      .admin-header h1 { font-size: 1.2rem; }
+      .a-card { padding: 1rem; }
+    }
   </style>
 </head>
 <body>
+<button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle menu">☰</button>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 <div class="admin-shell">
   <!-- Sidebar -->
-  <aside class="admin-sidebar">
+  <aside class="admin-sidebar" id="adminSidebar">
     <div class="sidebar-logo">
       <img src="/images/logo.png" alt="PAQ Admin">
     </div>
@@ -154,5 +213,19 @@
     <%- body %>
   </main>
 </div>
+<script>
+  const sidebarToggle = document.getElementById('sidebarToggle');
+  const adminSidebar  = document.getElementById('adminSidebar');
+  const sidebarOverlay = document.getElementById('sidebarOverlay');
+  function closeSidebar() {
+    adminSidebar.classList.remove('open');
+    sidebarOverlay.classList.remove('open');
+  }
+  sidebarToggle.addEventListener('click', () => {
+    const isOpen = adminSidebar.classList.toggle('open');
+    sidebarOverlay.classList.toggle('open', isOpen);
+  });
+  sidebarOverlay.addEventListener('click', closeSidebar);
+</script>
 </body>
 </html>
