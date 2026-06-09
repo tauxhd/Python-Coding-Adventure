@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop – Python Adventure Quest</title>
+  <link rel="stylesheet" href="/css/globals.css">
+  <style>
+    body {
+      background:
+        radial-gradient(ellipse at 60% 10%, rgba(176,77,255,0.12) 0%, transparent 50%),
+        radial-gradient(ellipse at 20% 80%, rgba(74,38,168,0.15) 0%, transparent 50%),
+        var(--bg-deep);
+    }
+
+    .shop-header {
+      text-align: center;
+      padding: 2.5rem 1.5rem 1rem;
+    }
+    .shop-header h1 {
+      font-size: 2rem;
+      color: var(--gold);
+      text-shadow: 0 0 24px rgba(240,192,64,0.4);
+      margin-bottom: 0.4rem;
+    }
+    .shop-header p { color: var(--text-muted); }
+
+    .elixir-banner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.7rem 1.5rem;
+      width: fit-content;
+      margin: 0 auto 2rem;
+      font-family: 'Cinzel', serif;
+    }
+    .elixir-banner img { height: 28px; }
+    .elixir-banner .amount { font-size: 1.4rem; color: var(--p2-color); font-weight: 700; }
+    .elixir-banner .label { color: var(--text-muted); font-size: 0.85rem; }
+
+    .shop-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1.2rem;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 1.5rem 3rem;
+    }
+
+    .item-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.4rem;
+      display: flex;
+      flex-direction: column;
+      transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+      position: relative;
+    }
+    .item-card:hover {
+      border-color: var(--border-glow);
+      box-shadow: 0 0 24px rgba(91,63,168,0.25);
+      transform: translateY(-2px);
+    }
+    .item-card.owned {
+      border-color: rgba(240,192,64,0.35);
+    }
+
+    .item-image {
+      width: 72px;
+      height: 72px;
+      border-radius: 10px;
+      background: var(--bg-deep);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      margin-bottom: 0.9rem;
+      overflow: hidden;
+    }
+    .item-image img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
+
+    .item-name {
+      font-family: 'Cinzel', serif;
+      font-size: 0.95rem;
+      color: var(--text-main);
+      margin-bottom: 0.4rem;
+    }
+    .item-desc {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      flex: 1;
+      margin-bottom: 1rem;
+      line-height: 1.5;
+    }
+
+    .item-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+    .item-cost {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: 'Cinzel', serif;
+      font-size: 0.95rem;
+      color: var(--p2-color);
+      font-weight: 600;
+    }
+    .item-cost img { height: 18px; }
+
+    .owned-badge {
+      position: absolute;
+      top: 0.7rem;
+      right: 0.7rem;
+      background: rgba(240,192,64,0.15);
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      font-family: 'Cinzel', serif;
+      font-size: 0.68rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 20px;
+      letter-spacing: 0.05em;
+    }
+
+    .btn-buy {
+      padding: 0.45rem 1rem;
+      font-size: 0.82rem;
+    }
+    .btn-buy:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    .inventory-section {
+      max-width: 1100px;
+      margin: 0 auto 1.5rem;
+      padding: 0 1.5rem;
+    }
+    .inventory-section h2 {
+      font-size: 1rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+      letter-spacing: 0.08em;
+    }
+    .inventory-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .inv-chip {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--bg-card);
+      border: 1px solid var(--gold);
+      border-radius: 20px;
+      padding: 0.3rem 0.8rem;
+      font-family: 'Cinzel', serif;
+      font-size: 0.78rem;
+      color: var(--gold);
+    }
+    .inv-chip .qty {
+      background: rgba(240,192,64,0.2);
+      border-radius: 10px;
+      padding: 0 0.4rem;
+      font-size: 0.75rem;
+    }
+
+    .alerts { max-width: 1100px; margin: 0 auto 1rem; padding: 0 1.5rem; }
+
+    /* Bag */
+    .bag-toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-glow);
+      border-radius: 12px;
+      padding: 0.8rem 1.2rem;
+      color: var(--text-main);
+      font-family: 'Cinzel', serif;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .bag-toggle:hover { background: var(--bg-hover); }
+    .bag-count {
+      background: rgba(240,192,64,0.15);
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      border-radius: 20px;
+      padding: 0.1rem 0.6rem;
+      font-size: 0.75rem;
+    }
+    #bag-arrow { margin-left: auto; color: var(--text-muted); transition: transform 0.2s; }
+
+    .bag-drawer {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 12px 12px;
+      padding: 1.2rem;
+    }
+    .bag-empty { color: var(--text-muted); text-align: center; padding: 1rem; }
+    .bag-grid { display: flex; flex-direction: column; gap: 0.7rem; }
+    .bag-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 0.8rem;
+      background: var(--bg-deep);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    .bag-item-emoji { font-size: 1.8rem; flex-shrink: 0; }
+    .bag-item-name { font-family: 'Cinzel', serif; font-size: 0.9rem; margin-bottom: 0.2rem; }
+    .bag-item-desc { font-size: 0.83rem; color: var(--text-muted); margin-bottom: 0.4rem; }
+    .bag-item-meta { display: flex; gap: 0.8rem; font-size: 0.75rem; }
+    .bag-qty { color: var(--gold); font-family: 'Cinzel', serif; }
+    .bag-cd { color: var(--text-muted); }
+  </style>
+</head>
+<body>
+  <%- include('partials/navbar') %>
+
+  <div class="shop-header">
+    <h1>The Arcane Shop</h1>
+    <p>Spend your Elixir on powerful items before entering battle</p>
+  </div>
+
+  <!-- Elixir balance -->
+  <div class="elixir-banner">
+    <img src="/images/elixir.png" alt="Elixir">
+    <span class="amount"><%= elixir %></span>
+    <span class="label">Elixir available</span>
+  </div>
+
+  <!-- Alerts -->
+  <div class="alerts">
+    <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+    <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
+  </div>
+
+  <!-- View Bag -->
+  <% const ownedItems = items.filter(i => inventoryMap[i.id] > 0); %>
+  <div class="bag-section" style="max-width:1100px;margin:0 auto 1.5rem;padding:0 1.5rem;">
+    <button class="bag-toggle" onclick="toggleBag()" id="bag-toggle-btn">
+      ⚗ View Your Bag <span class="bag-count"><%= ownedItems.length > 0 ? ownedItems.length + ' item' + (ownedItems.length > 1 ? 's' : '') : 'Empty' %></span>
+      <span id="bag-arrow">▼</span>
+    </button>
+
+    <div id="bag-drawer" class="bag-drawer <%= ownedItems.length === 0 ? '' : '' %>" style="display:none;">
+      <% if (ownedItems.length === 0) { %>
+        <div class="bag-empty">
+          <p>Your bag is empty. Buy items below to prepare for battle.</p>
+        </div>
+      <% } else { %>
+        <div class="bag-grid">
+          <% ownedItems.forEach(item => {
+            const itemEmojis = {
+              'immunity':'🛡️','double_damage':'⚔️','extra_turn':'⏳','fog':'🌫️',
+              'steal_elixir':'💜','reroll':'🎲','curse_scroll':'📜','hint':'🔮',
+              'time_warp':'🕰️','elixir_surge':'⚡','ghost_step':'👻'
+            };
+            const emoji = itemEmojis[item.effect_type] || '✨';
+          %>
+          <div class="bag-item">
+            <span class="bag-item-emoji"><%= emoji %></span>
+            <div class="bag-item-info">
+              <div class="bag-item-name"><%= item.name %></div>
+              <div class="bag-item-desc"><%= item.description %></div>
+              <div class="bag-item-meta">
+                <span class="bag-qty">x<%= inventoryMap[item.id] %> owned</span>
+                <span class="bag-cd">🕐 <%= item.cooldown_turns %>-turn cooldown</span>
+              </div>
+            </div>
+          </div>
+          <% }); %>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Shop grid -->
+  <div class="shop-grid">
+    <% items.forEach(item => {
+      const owned = inventoryMap[item.id] || 0;
+      const canAfford = elixir >= item.cost;
+      const itemEmojis = {
+        'immunity': '🛡️', 'double_damage': '⚔️', 'extra_turn': '⏳',
+        'fog': '🌫️', 'steal_elixir': '💜', 'reroll': '🎲',
+        'curse_scroll': '📜', 'hint': '🔮', 'time_warp': '🕰️',
+        'elixir_surge': '⚡', 'ghost_step': '👻'
+      };
+      const emoji = itemEmojis[item.effect_type] || '✨';
+    %>
+    <div class="item-card <%= owned > 0 ? 'owned' : '' %>">
+      <% if (owned > 0) { %>
+        <div class="owned-badge">x<%= owned %> owned</div>
+      <% } %>
+
+      <div class="item-image">
+        <%
+          const emojiMap = {
+            'immunity': '🛡️',
+            'double_damage': '⚔️',
+            'extra_turn': '⏱️',
+            'fog': '🌫️',
+            'steal_elixir': '💜',
+            'reroll': '🎲',
+            'curse_scroll': '📜',
+            'hint': '💡',
+            'time_warp': '⏳',
+            'elixir_surge': '⚡',
+            'ghost_step': '👻'
+          };
+          let icon = '✨';
+          for (const [key, val] of Object.entries(emojiMap)) {
+            if (item.effect_type && item.effect_type.includes(key)) {
+              icon = val;
+              break;
+            }
+          }
+        %>
+        <span><%= icon %></span>
+      </div>
+
+      <div class="item-name"><%= item.name %></div>
+      <div class="item-desc"><%= item.description %></div>
+
+      <div class="item-footer">
+        <div class="item-cost">
+          <img src="/images/elixir.png" alt="Elixir">
+          <%= item.cost %>
+        </div>
+        <form action="/shop/buy/<%= item.id %>" method="POST">
+          <button type="submit"
+                  class="btn btn-primary btn-buy"
+                  <%= !canAfford ? 'disabled' : '' %>>
+            <%= canAfford ? 'Buy' : 'Need ' + (item.cost - elixir) + ' more' %>
+          </button>
+        </form>
+      </div>
+    </div>
+    <% }); %>
+  </div>
+
+  <script>
+    function toggleBag() {
+      const drawer = document.getElementById('bag-drawer');
+      const arrow  = document.getElementById('bag-arrow');
+      const open   = drawer.style.display === 'block';
+      drawer.style.display = open ? 'none' : 'block';
+      arrow.textContent = open ? '▼' : '▲';
+    }
+  </script>
+</body>
+</html>

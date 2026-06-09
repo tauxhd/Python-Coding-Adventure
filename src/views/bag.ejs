@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bag – Python Adventure Quest</title>
+  <link rel="stylesheet" href="/css/globals.css">
+  <style>
+    body {
+      background:
+        radial-gradient(ellipse at 50% 0%, rgba(74,38,168,0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, rgba(176,77,255,0.12) 0%, transparent 50%),
+        var(--bg-deep);
+    }
+
+    .bag-wrap {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+    }
+
+    .bag-header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .bag-header h1 {
+      font-size: 2.2rem;
+      color: var(--gold);
+      text-shadow: 0 0 24px rgba(240,192,64,0.5);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+    }
+
+    .bag-header h1 svg {
+      width: 40px;
+      height: 40px;
+    }
+
+    .bag-header p {
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+
+    .empty-bag {
+      text-align: center;
+      padding: 3rem 2rem;
+      background: var(--bg-card);
+      border: 2px dashed var(--border);
+      border-radius: 16px;
+      color: var(--text-muted);
+    }
+
+    .empty-bag svg {
+      width: 60px;
+      height: 60px;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    .bag-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .item-card {
+      background: linear-gradient(135deg, var(--bg-card), rgba(91,63,168,0.1));
+      border: 1px solid rgba(240,192,64,0.2);
+      border-radius: 12px;
+      padding: 1.5rem;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .item-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(240,192,64,0.05), transparent);
+      pointer-events: none;
+    }
+
+    .item-card:hover {
+      border-color: rgba(240,192,64,0.5);
+      box-shadow: 0 0 20px rgba(240,192,64,0.15);
+      transform: translateY(-4px);
+    }
+
+    .item-header {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 1rem;
+    }
+
+    .item-name {
+      font-family: 'Cinzel', serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--gold);
+    }
+
+    .quantity-badge {
+      background: linear-gradient(135deg, var(--p2-color), #8060d0);
+      color: #fff;
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    .item-description {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+      line-height: 1.5;
+    }
+
+    .item-stats {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      padding: 0.8rem;
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      font-size: 0.85rem;
+    }
+
+    .stat {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--text-muted);
+    }
+
+    .stat strong {
+      color: var(--text-main);
+    }
+
+    .effect-badge {
+      display: inline-block;
+      background: rgba(74,179,255,0.15);
+      border: 1px solid rgba(74,179,255,0.3);
+      color: var(--p1-color);
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-family: 'Cinzel', serif;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.8rem;
+      display: inline-block;
+    }
+
+    /* Equip Slots */
+    .equip-section {
+      background: linear-gradient(135deg, rgba(240,192,64,0.1), rgba(176,77,255,0.08));
+      border: 2px solid rgba(240,192,64,0.25);
+      border-radius: 14px;
+      padding: 2rem;
+      margin-bottom: 3rem;
+    }
+
+    .equip-section h2 {
+      color: var(--gold);
+      margin-bottom: 1rem;
+      font-size: 1.3rem;
+    }
+
+    .equip-slots {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .equip-slot {
+      aspect-ratio: 1;
+      background: linear-gradient(135deg, rgba(91,63,168,0.15), rgba(176,77,255,0.08));
+      border: 2px dashed rgba(240,192,64,0.3);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+    }
+
+    .equip-slot:hover {
+      border-color: rgba(240,192,64,0.6);
+      background: linear-gradient(135deg, rgba(91,63,168,0.25), rgba(176,77,255,0.15));
+      box-shadow: 0 0 16px rgba(240,192,64,0.2);
+    }
+
+    .equip-slot.filled {
+      border-style: solid;
+      border-color: var(--gold);
+      background: linear-gradient(135deg, rgba(240,192,64,0.15), rgba(176,77,255,0.1));
+    }
+
+    .slot-label {
+      font-family: 'Cinzel', serif;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.5rem;
+    }
+
+    .equip-slot.filled .slot-label {
+      color: var(--gold);
+    }
+
+    .slot-item-name {
+      font-family: 'Cinzel', serif;
+      font-size: 0.9rem;
+      color: var(--text-main);
+      text-align: center;
+      word-break: break-word;
+    }
+
+    .slot-remove {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 20px;
+      height: 20px;
+      background: rgba(255,77,106,0.2);
+      border: 1px solid rgba(255,77,106,0.4);
+      border-radius: 50%;
+      color: var(--red);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .equip-slot.filled:hover .slot-remove {
+      opacity: 1;
+    }
+
+    .save-equip-btn {
+      display: inline-block;
+      padding: 0.8rem 2rem;
+      background: linear-gradient(135deg, var(--p2-color), #8060d0);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Cinzel', serif;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .save-equip-btn:hover {
+      box-shadow: 0 0 20px rgba(176,77,255,0.5);
+      transform: translateY(-2px);
+    }
+
+    .equip-info {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 1rem;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.8rem 1.5rem;
+      background: linear-gradient(135deg, var(--border-glow), #8060d0);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'Cinzel', serif;
+      font-weight: 600;
+      transition: all 0.3s;
+      margin-bottom: 2rem;
+    }
+
+    .back-btn:hover {
+      box-shadow: 0 0 20px rgba(91,63,168,0.5);
+      transform: translateY(-2px);
+    }
+
+    .back-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+  </style>
+</head>
+<body>
+  <%- include('partials/navbar') %>
+
+  <div class="bag-wrap">
+    <button class="back-btn" onclick="window.history.back()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+      Back
+    </button>
+
+    <div class="bag-header">
+      <h1>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M6 9l.75-3h10.5l.75 3M9 9v-2a2 2 0 012-2h2a2 2 0 012 2v2m-9 0h12a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V11a2 2 0 012-2z"></path>
+        </svg>
+        Your Bag
+      </h1>
+      <p><%= items.length %> item<%= items.length !== 1 ? 's' : '' %> in your inventory</p>
+    </div>
+
+    <!-- Equip Slots Section -->
+    <div class="equip-section">
+      <h2>⚔️ Equip Cards (Select 3 for Battle)</h2>
+      <div class="equip-slots">
+        <div class="equip-slot <%= equipped.slot1 ? 'filled' : '' %>" id="slot-1" onclick="showSlotItemMenu(1)">
+          <span class="slot-label">Slot 1</span>
+          <% if (equipped.slot1) { %>
+            <%
+              const slotItem = items.find(i => i.item_id === equipped.slot1);
+            %>
+            <% if (slotItem) { %>
+              <span class="slot-item-name"><%= slotItem.name %></span>
+              <span class="slot-remove" onclick="event.stopPropagation(); unequipSlot(1)">×</span>
+            <% } %>
+          <% } else { %>
+            <span style="color:var(--text-muted);font-size:0.8rem;">Click to equip</span>
+          <% } %>
+        </div>
+
+        <div class="equip-slot <%= equipped.slot2 ? 'filled' : '' %>" id="slot-2" onclick="showSlotItemMenu(2)">
+          <span class="slot-label">Slot 2</span>
+          <% if (equipped.slot2) { %>
+            <%
+              const slotItem2 = items.find(i => i.item_id === equipped.slot2);
+            %>
+            <% if (slotItem2) { %>
+              <span class="slot-item-name"><%= slotItem2.name %></span>
+              <span class="slot-remove" onclick="event.stopPropagation(); unequipSlot(2)">×</span>
+            <% } %>
+          <% } else { %>
+            <span style="color:var(--text-muted);font-size:0.8rem;">Click to equip</span>
+          <% } %>
+        </div>
+
+        <div class="equip-slot <%= equipped.slot3 ? 'filled' : '' %>" id="slot-3" onclick="showSlotItemMenu(3)">
+          <span class="slot-label">Slot 3</span>
+          <% if (equipped.slot3) { %>
+            <%
+              const slotItem3 = items.find(i => i.item_id === equipped.slot3);
+            %>
+            <% if (slotItem3) { %>
+              <span class="slot-item-name"><%= slotItem3.name %></span>
+              <span class="slot-remove" onclick="event.stopPropagation(); unequipSlot(3)">×</span>
+            <% } %>
+          <% } else { %>
+            <span style="color:var(--text-muted);font-size:0.8rem;">Click to equip</span>
+          <% } %>
+        </div>
+      </div>
+      <button class="save-equip-btn" onclick="saveEquippedCards()">Save Equipped Cards</button>
+      <div class="equip-info">
+        💡 Click a slot to select an item from your inventory. You can equip the same item to multiple slots.
+      </div>
+    </div>
+
+    <% if (items.length === 0) { %>
+      <div class="empty-bag">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M6 9l.75-3h10.5l.75 3M9 9v-2a2 2 0 012-2h2a2 2 0 012 2v2m-9 0h12a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V11a2 2 0 012-2z"></path>
+        </svg>
+        <h3>Your bag is empty</h3>
+        <p>Visit the shop to purchase items and powerups!</p>
+        <a href="/shop" class="btn btn-primary" style="margin-top:1rem;">Visit Shop</a>
+      </div>
+    <% } else if (items.every(i => i.availableQty <= 0)) { %>
+      <div class="empty-bag">
+        <div style="font-size:2rem;margin-bottom:1rem;">✅</div>
+        <h3 style="color:var(--green);">All cards equipped!</h3>
+        <p>All your items are in your battle slots. Buy more from the shop to expand your collection.</p>
+        <a href="/shop" class="btn btn-gold" style="margin-top:1rem;">Buy More Cards</a>
+      </div>
+    <% } else { %>
+      <div class="bag-grid" id="items-grid">
+        <% items.forEach(item => { %>
+          <div class="item-card" id="item-card-<%= item.item_id %>">
+            <div class="item-header">
+              <span class="item-name"><%= item.name %></span>
+              <% if (item.availableQty <= 0) { %>
+                <span class="quantity-badge qty-badge" style="background:linear-gradient(135deg,#555,#333);color:#999;">All Equipped</span>
+              <% } else { %>
+                <span class="quantity-badge qty-badge">×<%= item.availableQty %> free</span>
+              <% } %>
+            </div>
+
+            <% if (item.effect_type) { %>
+              <span class="effect-badge"><%= item.effect_type.replace(/_/g, ' ') %></span>
+            <% } %>
+
+            <p class="item-description"><%= item.description %></p>
+
+            <div class="item-stats">
+              <% if (item.effect_value) { %>
+                <div class="stat">
+                  <strong>Effect:</strong> <%= item.effect_value %>
+                </div>
+              <% } %>
+              <% if (item.cooldown_turns) { %>
+                <div class="stat">
+                  <strong>Cooldown:</strong> <%= item.cooldown_turns %> turns
+                </div>
+              <% } %>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    <% } %>
+  </div>
+
+  <script>
+    let equippedCards = {
+      slot1: <%= equipped.slot1 || 'null' %>,
+      slot2: <%= equipped.slot2 || 'null' %>,
+      slot3: <%= equipped.slot3 || 'null' %>
+    };
+
+    const allItems = <%- JSON.stringify(items) %>;
+    let currentSlot = null;
+
+    function getAvailableForSlot(slot) {
+      // An item is available if: availableQty > 0 OR it's currently in THIS slot
+      return allItems.filter(item => {
+        if (equippedCards['slot' + slot] === item.item_id) return true; // currently in this slot
+        return item.availableQty > 0;
+      });
+    }
+
+    function showSlotItemMenu(slot) {
+      currentSlot = slot;
+      const available = getAvailableForSlot(slot);
+
+      const itemRows = available.length === 0
+        ? `<div style="text-align:center;padding:1.5rem;color:var(--text-muted);">
+            <p style="margin-bottom:0.8rem;">No items available.</p>
+            <a href="/shop" style="color:var(--p2-color);font-family:'Cinzel',serif;font-size:0.85rem;text-decoration:underline;">Buy more cards →</a>
+           </div>`
+        : available.map(item => {
+            const isEquippedHere = equippedCards['slot' + slot] === item.item_id;
+            const bg = isEquippedHere ? 'rgba(240,192,64,0.15)' : 'transparent';
+            const border = isEquippedHere ? '240,192,64' : '91,63,168';
+            const avail = isEquippedHere ? item.availableQty + 1 : item.availableQty; // show real qty
+            return `<button style="padding:0.8rem;background:${bg};border:1px solid rgba(${border},0.3);border-radius:8px;color:var(--text-main);cursor:pointer;text-align:left;width:100%;transition:all 0.2s;"
+              onmouseover="this.style.background='rgba(91,63,168,0.2)'"
+              onmouseout="this.style.background='${bg}'"
+              onclick="equipItem(${slot}, ${item.item_id})">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <strong>${item.name}</strong>
+                <span style="background:rgba(176,77,255,0.2);border:1px solid rgba(176,77,255,0.4);border-radius:10px;padding:0.1rem 0.5rem;font-size:0.78rem;color:var(--p2-color);">×${item.quantity}</span>
+              </div>
+              <small style="color:var(--text-muted);">${item.description}</small>
+            </button>`;
+          }).join('');
+
+      const menuHTML = `
+        <div style="position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(4px);" onclick="if(event.target===this)closeMenu()">
+          <div style="background:var(--bg-card);border:2px solid rgba(240,192,64,0.25);border-radius:14px;padding:2rem;max-width:420px;width:90%;max-height:75vh;overflow-y:auto;animation:slideIn 0.3s ease;position:relative;">
+            <h3 style="color:var(--gold);margin-bottom:0.4rem;font-size:1.1rem;">Select Item for Slot ${slot}</h3>
+            <p style="color:var(--text-muted);font-size:0.82rem;margin-bottom:1.2rem;">Items already equipped in other slots are excluded.</p>
+            <div style="display:flex;flex-direction:column;gap:0.8rem;">
+              <button style="padding:0.8rem;background:transparent;border:1px solid rgba(255,77,106,0.25);border-radius:8px;color:var(--red);cursor:pointer;text-align:left;transition:all 0.2s;" onclick="equipItem(${slot}, null)">
+                <strong>— Remove from Slot —</strong>
+              </button>
+              ${itemRows}
+            </div>
+            <button style="width:100%;margin-top:1rem;padding:0.8rem;background:linear-gradient(135deg,var(--border-glow),#8060d0);color:#fff;border:none;border-radius:8px;cursor:pointer;font-family:'Cinzel',serif;font-weight:600;transition:all 0.2s;" onclick="closeMenu()" onmouseover="this.style.boxShadow='0 0 20px rgba(91,63,168,0.5)'" onmouseout="this.style.boxShadow=''">Done</button>
+          </div>
+        </div>
+      `;
+      const menu = document.createElement('div');
+      menu.id = 'item-menu';
+      menu.innerHTML = menuHTML;
+      document.body.appendChild(menu);
+    }
+
+    function closeMenu() {
+      const menu = document.getElementById('item-menu');
+      if (menu) menu.remove();
+    }
+
+    function getEquippedCounts() {
+      const counts = {};
+      [1, 2, 3].forEach(s => {
+        const id = equippedCards[`slot${s}`];
+        if (id) counts[id] = (counts[id] || 0) + 1;
+      });
+      return counts;
+    }
+
+    function equipItem(slot, itemId) {
+      equippedCards[`slot${slot}`] = itemId;
+      updateSlotDisplay(slot);
+      renderItemsGrid();
+      closeMenu();
+      autoSave();
+    }
+
+    function unequipSlot(slot) {
+      equippedCards[`slot${slot}`] = null;
+      updateSlotDisplay(slot);
+      renderItemsGrid();
+      autoSave();
+    }
+
+    async function autoSave() {
+      try {
+        const response = await fetch('/bag/equip', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            slot1: equippedCards.slot1 || null,
+            slot2: equippedCards.slot2 || null,
+            slot3: equippedCards.slot3 || null
+          })
+        });
+        const data = await response.json();
+        if (!data.success) {
+          console.error('Auto-save failed:', data.error);
+        }
+      } catch (err) {
+        console.error('Auto-save error:', err);
+      }
+    }
+
+    function updateSlotDisplay(slot) {
+      const slotEl = document.getElementById(`slot-${slot}`);
+      const itemId = equippedCards[`slot${slot}`];
+
+      if (itemId) {
+        const item = allItems.find(i => i.item_id === itemId);
+        slotEl.className = 'equip-slot filled';
+        slotEl.innerHTML = `
+          <span class="slot-label">Slot ${slot}</span>
+          <span class="slot-item-name">${item.name}</span>
+          <span class="slot-remove" onclick="event.stopPropagation(); unequipSlot(${slot})">×</span>
+        `;
+      } else {
+        slotEl.className = 'equip-slot';
+        slotEl.innerHTML = `
+          <span class="slot-label">Slot ${slot}</span>
+          <span style="color:var(--text-muted);font-size:0.8rem;">Click to equip</span>
+        `;
+      }
+    }
+
+    function renderItemsGrid() {
+      const equippedCounts = getEquippedCounts();
+
+      allItems.forEach(item => {
+        const equippedNow = equippedCounts[item.item_id] || 0;
+        const available = item.quantity - equippedNow;
+        const card = document.getElementById(`item-card-${item.item_id}`);
+        if (!card) return;
+
+        // Always keep card visible — just update the badge
+        const badge = card.querySelector('.qty-badge');
+        if (badge) {
+          if (available <= 0) {
+            badge.textContent = 'All Equipped';
+            badge.style.background = 'linear-gradient(135deg,#555,#333)';
+            badge.style.color = '#999';
+          } else {
+            badge.textContent = `×${available} free`;
+            badge.style.background = 'linear-gradient(135deg,#b04dff,#8060d0)';
+            badge.style.color = '#fff';
+          }
+        }
+      });
+    }
+
+    async function saveEquippedCards() {
+      try {
+        const response = await fetch('/bag/equip', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            slot1: equippedCards.slot1,
+            slot2: equippedCards.slot2,
+            slot3: equippedCards.slot3
+          })
+        });
+        const data = await response.json();
+        if (data.success) {
+          alert('✓ Cards saved! You\'re ready for battle!');
+        } else {
+          alert('Error: ' + data.error);
+        }
+      } catch (err) {
+        alert('Failed to save cards');
+      }
+    }
+  </script>
+</body>
+</html>

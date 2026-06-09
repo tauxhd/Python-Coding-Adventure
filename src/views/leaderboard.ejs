@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leaderboard – Python Adventure Quest</title>
+  <link rel="stylesheet" href="/css/globals.css">
+  <style>
+    body {
+      background:
+        radial-gradient(ellipse at 50% 0%, rgba(240,192,64,0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, rgba(74,38,168,0.15) 0%, transparent 50%),
+        var(--bg-deep);
+    }
+    .lb-wrap {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+    }
+    .lb-header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+    .lb-header h1 {
+      font-size: 2rem;
+      color: var(--gold);
+      text-shadow: 0 0 24px rgba(240,192,64,0.4);
+      margin-bottom: 0.3rem;
+    }
+    .lb-header p { color: var(--text-muted); }
+
+    /* ── BOB ANIMATION ── */
+    @keyframes bob {
+      0%, 100% { transform: translateY(0px); }
+      50%       { transform: translateY(-10px); }
+    }
+    @keyframes bob-slow {
+      0%, 100% { transform: translateY(0px); }
+      50%       { transform: translateY(-7px); }
+    }
+    .bob-1 { animation: bob 2.8s ease-in-out infinite; }
+    .bob-2 { animation: bob-slow 3.2s ease-in-out infinite 0.4s; }
+    .bob-3 { animation: bob-slow 3.6s ease-in-out infinite 0.8s; }
+
+    /* ── TIER SEPARATOR ── */
+    .tier-sep td { padding: 0; border: none; }
+
+    .tier-banner {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.6rem 1rem;
+      font-family: 'Cinzel', serif;
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+    .tier-banner::before,
+    .tier-banner::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+    }
+
+    .tier-champions-banner {
+      background: linear-gradient(90deg, transparent, rgba(240,192,64,0.12), rgba(240,192,64,0.08), rgba(240,192,64,0.12), transparent);
+      color: var(--gold);
+      border-top: 1px solid rgba(240,192,64,0.25);
+      border-bottom: 1px solid rgba(240,192,64,0.25);
+      text-shadow: 0 0 10px rgba(240,192,64,0.6);
+    }
+    .tier-champions-banner::before,
+    .tier-champions-banner::after { background: linear-gradient(90deg, transparent, rgba(240,192,64,0.4)); }
+    .tier-champions-banner::after  { background: linear-gradient(270deg, transparent, rgba(240,192,64,0.4)); }
+
+    .tier-mages-banner {
+      background: linear-gradient(90deg, transparent, rgba(176,77,255,0.08), transparent);
+      color: var(--p2-color);
+      border-top: 1px solid rgba(176,77,255,0.2);
+      border-bottom: 1px solid rgba(176,77,255,0.2);
+    }
+    .tier-mages-banner::before,
+    .tier-mages-banner::after { background: linear-gradient(90deg, transparent, rgba(176,77,255,0.3)); }
+    .tier-mages-banner::after  { background: linear-gradient(270deg, transparent, rgba(176,77,255,0.3)); }
+
+    .tier-knights-banner {
+      background: linear-gradient(90deg, transparent, rgba(74,179,255,0.06), transparent);
+      color: var(--p1-color);
+      border-top: 1px solid rgba(74,179,255,0.18);
+      border-bottom: 1px solid rgba(74,179,255,0.18);
+    }
+    .tier-knights-banner::before,
+    .tier-knights-banner::after { background: linear-gradient(90deg, transparent, rgba(74,179,255,0.25)); }
+    .tier-knights-banner::after  { background: linear-gradient(270deg, transparent, rgba(74,179,255,0.25)); }
+
+    /* ── SHIMMER ── */
+    @keyframes shimmer {
+      0%   { background-position: -600px 0; }
+      100% { background-position: 600px 0; }
+    }
+
+    /* ── TOP 10 CHAMPION ROWS ── */
+    tbody tr.champion-row {
+      position: relative;
+      background: linear-gradient(90deg,
+        rgba(240,192,64,0.10) 0%,
+        rgba(240,192,64,0.05) 30%,
+        rgba(120,80,20,0.04) 70%,
+        transparent 100%
+      );
+      border-left: 3px solid rgba(240,192,64,0.7);
+      box-shadow: inset 0 1px 0 rgba(240,192,64,0.08), inset 0 -1px 0 rgba(240,192,64,0.05);
+    }
+    tbody tr.champion-row::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(240,192,64,0.04) 40%,
+        rgba(255,220,100,0.1) 50%,
+        rgba(240,192,64,0.04) 60%,
+        transparent 100%
+      );
+      background-size: 600px 100%;
+      animation: shimmer 4s linear infinite;
+      pointer-events: none;
+    }
+    tbody tr.champion-row:hover {
+      background: linear-gradient(90deg,
+        rgba(240,192,64,0.18) 0%,
+        rgba(240,192,64,0.10) 30%,
+        rgba(120,80,20,0.06) 70%,
+        transparent 100%
+      );
+    }
+    tbody tr.champion-row td { padding: 0.8rem 0.7rem; }
+    tbody tr.champion-row .player-name {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: #f0dfa0;
+      letter-spacing: 0.04em;
+    }
+    tbody tr.champion-row .avatar-sm {
+      width: 34px; height: 34px;
+      font-size: 0.85rem;
+      background: linear-gradient(135deg, #6a30c8, #c870ff);
+      box-shadow: 0 0 10px rgba(200,112,255,0.5), 0 0 20px rgba(200,112,255,0.2);
+      border: 1px solid rgba(240,192,64,0.4);
+    }
+    tbody tr.champion-row .xp-cell span { font-size: 0.95rem; }
+
+    /* ── TOP 3 SPECIAL ROWS ── */
+    @keyframes pulse-gold {
+      0%,100% { box-shadow: inset 3px 0 0 rgba(240,192,64,0.8), 0 0 20px rgba(240,192,64,0.08); }
+      50%      { box-shadow: inset 3px 0 0 rgba(240,192,64,1),   0 0 35px rgba(240,192,64,0.18); }
+    }
+    @keyframes pulse-silver {
+      0%,100% { box-shadow: inset 3px 0 0 rgba(106,164,200,0.7), 0 0 16px rgba(106,164,200,0.06); }
+      50%      { box-shadow: inset 3px 0 0 rgba(106,164,200,1),   0 0 28px rgba(106,164,200,0.15); }
+    }
+    @keyframes pulse-bronze {
+      0%,100% { box-shadow: inset 3px 0 0 rgba(196,122,58,0.7),  0 0 14px rgba(196,122,58,0.05); }
+      50%      { box-shadow: inset 3px 0 0 rgba(196,122,58,1),    0 0 24px rgba(196,122,58,0.14); }
+    }
+
+    /* 1st — gold fire */
+    tbody tr.rank-1-row {
+      background: linear-gradient(90deg,
+        rgba(240,192,64,0.22) 0%,
+        rgba(200,140,20,0.12) 25%,
+        rgba(120,70,10,0.06) 60%,
+        transparent 100%
+      ) !important;
+      animation: pulse-gold 2.5s ease-in-out infinite;
+      border-top: 1px solid rgba(240,192,64,0.2) !important;
+      border-bottom: 1px solid rgba(240,192,64,0.2) !important;
+    }
+    tbody tr.rank-1-row:hover {
+      background: linear-gradient(90deg,
+        rgba(240,192,64,0.32) 0%,
+        rgba(200,140,20,0.18) 30%,
+        transparent 100%
+      ) !important;
+    }
+    tbody tr.rank-1-row .player-name {
+      color: var(--gold) !important;
+      font-size: 1rem !important;
+      text-shadow: 0 0 16px rgba(240,192,64,0.7) !important;
+    }
+    tbody tr.rank-1-row .avatar-sm {
+      width: 38px !important; height: 38px !important; font-size: 0.9rem !important;
+      background: linear-gradient(135deg, #a8702a, #f0c040) !important;
+      box-shadow: 0 0 14px rgba(240,192,64,0.7), 0 0 28px rgba(240,192,64,0.3) !important;
+      border: 1px solid rgba(240,192,64,0.8) !important;
+    }
+
+    /* 2nd — dragon silver-blue */
+    tbody tr.rank-2-row {
+      background: linear-gradient(90deg,
+        rgba(106,164,200,0.16) 0%,
+        rgba(80,120,160,0.08) 30%,
+        rgba(40,70,100,0.04) 60%,
+        transparent 100%
+      ) !important;
+      animation: pulse-silver 3s ease-in-out infinite;
+      border-top: 1px solid rgba(106,164,200,0.15) !important;
+      border-bottom: 1px solid rgba(106,164,200,0.15) !important;
+    }
+    tbody tr.rank-2-row:hover {
+      background: linear-gradient(90deg,
+        rgba(106,164,200,0.28) 0%,
+        rgba(80,120,160,0.14) 30%,
+        transparent 100%
+      ) !important;
+    }
+    tbody tr.rank-2-row .player-name {
+      color: #a0d8f0 !important;
+      font-size: 0.96rem !important;
+      text-shadow: 0 0 12px rgba(106,164,200,0.6) !important;
+    }
+    tbody tr.rank-2-row .avatar-sm {
+      width: 36px !important; height: 36px !important;
+      background: linear-gradient(135deg, #3a6a8a, #6aA4c8) !important;
+      box-shadow: 0 0 12px rgba(106,164,200,0.6), 0 0 24px rgba(106,164,200,0.25) !important;
+      border: 1px solid rgba(106,164,200,0.7) !important;
+    }
+
+    /* 3rd — wolf bronze */
+    tbody tr.rank-3-row {
+      background: linear-gradient(90deg,
+        rgba(196,122,58,0.14) 0%,
+        rgba(150,90,40,0.07) 30%,
+        rgba(80,50,20,0.03) 60%,
+        transparent 100%
+      ) !important;
+      animation: pulse-bronze 3.5s ease-in-out infinite;
+      border-top: 1px solid rgba(196,122,58,0.15) !important;
+      border-bottom: 1px solid rgba(196,122,58,0.15) !important;
+    }
+    tbody tr.rank-3-row:hover {
+      background: linear-gradient(90deg,
+        rgba(196,122,58,0.24) 0%,
+        rgba(150,90,40,0.12) 30%,
+        transparent 100%
+      ) !important;
+    }
+    tbody tr.rank-3-row .player-name {
+      color: #e0a878 !important;
+      font-size: 0.94rem !important;
+      text-shadow: 0 0 10px rgba(196,122,58,0.5) !important;
+    }
+    tbody tr.rank-3-row .avatar-sm {
+      width: 34px !important; height: 34px !important;
+      background: linear-gradient(135deg, #7a4a1e, #c47a3a) !important;
+      box-shadow: 0 0 10px rgba(196,122,58,0.55), 0 0 20px rgba(196,122,58,0.2) !important;
+      border: 1px solid rgba(196,122,58,0.6) !important;
+    }
+
+    /* Podium — overridden below */
+    .podium-avatar {
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .podium-name { font-family: 'Cinzel', serif; font-size: 0.82rem; color: var(--text-main); }
+    .podium-xp   { font-size: 0.72rem; color: var(--text-muted); }
+    .podium-block {
+      width: 100%;
+      border-radius: 8px 8px 0 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.5rem 0;
+    }
+
+    /* Podium redesign */
+    .podium {
+      position: relative;
+      padding: 2rem 1rem 0;
+      margin-bottom: 3rem;
+    }
+    .podium-bg {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 80%, rgba(240,192,64,0.08) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .podium-slots {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+    .podium-slot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+
+    /* Avatar */
+    .podium-avatar {
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 2;
+      margin-bottom: 0.6rem;
+    }
+    .podium-name {
+      font-family: 'Cinzel', serif;
+      font-size: 0.88rem;
+      color: var(--text-main);
+      margin-bottom: 0.2rem;
+      text-align: center;
+    }
+    .podium-xp {
+      font-size: 0.75rem;
+      margin-bottom: 0.8rem;
+      text-align: center;
+    }
+
+    /* Badge image floats above block */
+    .podium-badge-wrap {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .podium-badge-img {
+      position: relative;
+      z-index: 3;
+      margin-bottom: -20px;
+    }
+
+    /* Stepped block */
+    .podium-block {
+      width: 100%;
+      border-radius: 10px 10px 0 0;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: 0.5rem;
+      position: relative;
+    }
+    .podium-step-label {
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+      opacity: 0.6;
+    }
+
+    /* 1st */
+    .podium-slot.first .podium-avatar {
+      width: 80px; height: 80px; font-size: 1.8rem;
+      background: linear-gradient(135deg, #a8702a, var(--gold));
+      box-shadow: 0 0 30px rgba(240,192,64,0.6), 0 0 60px rgba(240,192,64,0.2);
+      border: 2px solid var(--gold);
+    }
+    .podium-slot.first .podium-xp { color: var(--gold); }
+    .podium-slot.first .podium-block {
+      height: 130px; min-width: 180px;
+      background: linear-gradient(180deg, rgba(240,192,64,0.18), rgba(240,192,64,0.04));
+      border: 1px solid rgba(240,192,64,0.5);
+      box-shadow: 0 0 30px rgba(240,192,64,0.15), inset 0 1px 0 rgba(240,192,64,0.3);
+    }
+    .podium-slot.first .podium-step-label { font-size: 2rem; color: var(--gold); }
+    .podium-slot.first .podium-name { font-size: 1rem; color: var(--gold); text-shadow: 0 0 12px rgba(240,192,64,0.4); }
+
+    /* 2nd */
+    .podium-slot.second .podium-avatar {
+      width: 64px; height: 64px; font-size: 1.4rem;
+      background: linear-gradient(135deg, #3a6a8a, #6aA4c8);
+      box-shadow: 0 0 20px rgba(106,164,200,0.5);
+      border: 2px solid #6aA4c8;
+    }
+    .podium-slot.second .podium-xp { color: #6aA4c8; }
+    .podium-slot.second .podium-block {
+      height: 95px; min-width: 155px;
+      background: linear-gradient(180deg, rgba(106,164,200,0.12), rgba(106,164,200,0.03));
+      border: 1px solid rgba(106,164,200,0.4);
+      box-shadow: 0 0 20px rgba(106,164,200,0.1), inset 0 1px 0 rgba(106,164,200,0.2);
+    }
+    .podium-slot.second .podium-step-label { font-size: 1.6rem; color: #6aA4c8; }
+
+    /* 3rd */
+    .podium-slot.third .podium-avatar {
+      width: 54px; height: 54px; font-size: 1.2rem;
+      background: linear-gradient(135deg, #7a4a1e, #c47a3a);
+      box-shadow: 0 0 16px rgba(196,122,58,0.4);
+      border: 2px solid #c47a3a;
+    }
+    .podium-slot.third .podium-xp { color: #c47a3a; }
+    .podium-slot.third .podium-block {
+      height: 70px; min-width: 140px;
+      background: linear-gradient(180deg, rgba(196,122,58,0.1), rgba(196,122,58,0.02));
+      border: 1px solid rgba(196,122,58,0.35);
+      box-shadow: 0 0 16px rgba(196,122,58,0.08), inset 0 1px 0 rgba(196,122,58,0.2);
+    }
+    .podium-slot.third .podium-step-label { font-size: 1.4rem; color: #c47a3a; }
+
+    /* Divider between podium and table */
+    .podium-ground {
+      height: 4px;
+      background: linear-gradient(90deg, transparent, rgba(240,192,64,0.3), rgba(240,192,64,0.6), rgba(240,192,64,0.3), transparent);
+      margin-bottom: 2rem;
+      border-radius: 2px;
+    }
+
+    /* Table */
+    .lb-table-wrap {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr {
+      background: var(--bg-deep);
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      font-family: 'Cinzel', serif;
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      padding: 0.6rem 0.7rem;
+      text-align: left;
+      white-space: nowrap;
+    }
+    th.right, td.right { text-align: right; }
+    th.center, td.center { text-align: center; }
+
+    tbody tr {
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      transition: background 0.15s;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--bg-hover); }
+    tbody tr.is-me {
+      background: rgba(91,63,168,0.12);
+      border-left: 3px solid var(--border-glow);
+    }
+
+    td { padding: 0.55rem 0.7rem; font-size: 0.85rem; }
+
+    .pos-num {
+      font-family: 'Cinzel', serif;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .pos-1 { color: var(--gold); }
+    .pos-2 { color: #7bb8d4; }
+    .pos-3 { color: #c47a3a; }
+
+    .player-cell { display: flex; align-items: center; gap: 0.7rem; }
+    .avatar-sm {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4a26a8, #b04dff);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Cinzel', serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .player-name { font-family: 'Cinzel', serif; font-size: 0.82rem; }
+    .me-tag {
+      font-size: 0.65rem;
+      color: var(--p2-color);
+      background: rgba(176,77,255,0.15);
+      border: 1px solid var(--p2-color);
+      border-radius: 10px;
+      padding: 0 0.4rem;
+      font-family: 'Cinzel', serif;
+    }
+
+    .xp-cell {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .xp-cell img { height: 16px; }
+    .xp-cell span { font-family: 'Cinzel', serif; font-size: 0.88rem; color: var(--gold); }
+
+    .attr-mini {
+      display: flex;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    .attr-mini span { display: flex; align-items: center; gap: 2px; }
+
+    .empty-lb {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <%- include('partials/navbar') %>
+
+  <div class="lb-wrap">
+    <div class="lb-header">
+      <h1>Hall of Archmages</h1>
+      <p>Ranked by XP — the greatest wizards in the realm</p>
+    </div>
+
+    <!-- Podium (top 3) -->
+    <% if (players.length >= 1) { %>
+    <div class="podium">
+      <div class="podium-bg"></div>
+      <div class="podium-slots">
+
+        <!-- 2nd place -->
+        <% if (players.length >= 2) { %>
+        <div class="podium-slot second">
+          <div class="podium-avatar"><%= players[1].username.charAt(0).toUpperCase() %></div>
+          <div class="podium-name"><%= players[1].username %></div>
+          <div class="podium-xp">
+            <img src="/images/xp.png" style="height:13px;vertical-align:middle;margin-right:3px;"><%= players[1].xp %> XP
+          </div>
+          <div class="podium-badge-wrap">
+            <img src="/images/Rank2.png" class="podium-badge-img bob-2" style="height:70px;filter:drop-shadow(0 0 12px rgba(106,164,200,0.8));">
+            <div class="podium-block">
+              <span class="podium-step-label">2</span>
+            </div>
+          </div>
+        </div>
+        <% } %>
+
+        <!-- 1st place -->
+        <div class="podium-slot first">
+          <div class="podium-avatar"><%= players[0].username.charAt(0).toUpperCase() %></div>
+          <div class="podium-name"><%= players[0].username %></div>
+          <div class="podium-xp">
+            <img src="/images/xp.png" style="height:14px;vertical-align:middle;margin-right:3px;"><%= players[0].xp %> XP
+          </div>
+          <div class="podium-badge-wrap">
+            <img src="/images/Rank1.png" class="podium-badge-img bob-1" style="height:100px;filter:drop-shadow(0 0 20px rgba(240,192,64,1)) drop-shadow(0 0 40px rgba(240,192,64,0.5));">
+            <div class="podium-block">
+              <span class="podium-step-label">1</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3rd place -->
+        <% if (players.length >= 3) { %>
+        <div class="podium-slot third">
+          <div class="podium-avatar"><%= players[2].username.charAt(0).toUpperCase() %></div>
+          <div class="podium-name"><%= players[2].username %></div>
+          <div class="podium-xp">
+            <img src="/images/xp.png" style="height:12px;vertical-align:middle;margin-right:3px;"><%= players[2].xp %> XP
+          </div>
+          <div class="podium-badge-wrap">
+            <img src="/images/Rank3.png" class="podium-badge-img bob-3" style="height:58px;filter:drop-shadow(0 0 10px rgba(196,122,58,0.8));">
+            <div class="podium-block">
+              <span class="podium-step-label">3</span>
+            </div>
+          </div>
+        </div>
+        <% } %>
+
+      </div>
+    </div>
+    <div class="podium-ground"></div>
+    <% } %>
+
+    <!-- Full table -->
+    <div class="lb-table-wrap">
+      <% if (players.length === 0) { %>
+        <div class="empty-lb">No wizards have battled yet. Be the first!</div>
+      <% } else { %>
+      <table>
+        <thead>
+          <tr>
+            <th class="center" style="width:36px;">#</th>
+            <th>Wizard</th>
+            <th>Rank</th>
+            <th class="center">XP</th>
+            <th class="center">Wins</th>
+            <th class="center">Games</th>
+            <th class="center">Correct</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% players.forEach((p, i) => { %>
+
+          <% if (i === 0) { %>
+          <tr class="tier-sep"><td colspan="7"><div class="tier-banner tier-champions-banner">👑 &nbsp; Champions &nbsp; — &nbsp; Top 10 &nbsp; 👑</div></td></tr>
+          <% } else if (i === 10) { %>
+          <tr class="tier-sep"><td colspan="7"><div class="tier-banner tier-mages-banner">🔮 &nbsp; Mages &nbsp; — &nbsp; Top 20</div></td></tr>
+          <% } else if (i === 20) { %>
+          <tr class="tier-sep"><td colspan="7"><div class="tier-banner tier-knights-banner">⚔️ &nbsp; Knights &nbsp; — &nbsp; Top 50</div></td></tr>
+          <% } %>
+
+          <tr class="<%= p.id === currentUserId ? 'is-me' : '' %> <%= i < 10 ? 'champion-row' : '' %> <%= i === 0 ? 'rank-1-row' : i === 1 ? 'rank-2-row' : i === 2 ? 'rank-3-row' : '' %>">
+            <td class="center">
+              <% if (i === 0) { %>
+                <img src="/images/Rank1.png" alt="#1" style="height:40px;filter:drop-shadow(0 0 8px rgba(240,192,64,0.9)) drop-shadow(0 0 16px rgba(240,192,64,0.5));">
+              <% } else if (i === 1) { %>
+                <img src="/images/Rank2.png" alt="#2" style="height:34px;filter:drop-shadow(0 0 7px rgba(106,164,200,0.8)) drop-shadow(0 0 14px rgba(106,164,200,0.4));">
+              <% } else if (i === 2) { %>
+                <img src="/images/Rank3.png" alt="#3" style="height:30px;filter:drop-shadow(0 0 6px rgba(196,122,58,0.8)) drop-shadow(0 0 12px rgba(196,122,58,0.4));">
+              <% } else { %>
+                <span class="pos-num"><%= i + 1 %></span>
+              <% } %>
+            </td>
+            <td>
+              <div class="player-cell">
+                <div class="avatar-sm"><%= p.username.charAt(0).toUpperCase() %></div>
+                <span class="player-name"><%= p.username %></span>
+                <% if (p.id === currentUserId) { %><span class="me-tag">You</span><% } %>
+              </div>
+            </td>
+            <td>
+              <%
+                const rImg = {'Code Initiate':'codeinitiate','Spellbinder':'spellbinder','Arcane Scholar':'arcanescholar','Grand Archmage':'grandarchmage'}[p.rank_name];
+                const rStyles = {
+                  'Code Initiate':  { bg: 'linear-gradient(135deg,#2a2a35,#3a3a45)', border: '#666', glow: 'rgba(180,180,200,0.2)', textColor: '#bbb' },
+                  'Spellbinder':    { bg: 'linear-gradient(135deg,#0d2035,#1a3a55)', border: '#4ab3ff', glow: 'rgba(74,179,255,0.25)', textColor: '#4ab3ff' },
+                  'Arcane Scholar': { bg: 'linear-gradient(135deg,#1a0d35,#2e1555)', border: '#b04dff', glow: 'rgba(176,77,255,0.3)',  textColor: '#c87dff' },
+                  'Grand Archmage': { bg: 'linear-gradient(135deg,#2a1a00,#4a3000)', border: '#f0c040', glow: 'rgba(240,192,64,0.35)', textColor: '#f0c040' },
+                }[p.rank_name];
+              %>
+              <div style="
+                display:inline-flex;align-items:center;gap:0.4rem;
+                background:<%= rStyles.bg %>;
+                border:1px solid <%= rStyles.border %>;
+                border-radius:8px;
+                padding:0.25rem 0.55rem 0.25rem 0.3rem;
+                box-shadow:0 0 8px <%= rStyles.glow %>;
+                white-space:nowrap;
+              ">
+                <img src="/images/<%= rImg %>.png" alt="<%= p.rank_name %>" style="height:20px;width:20px;object-fit:contain;filter:drop-shadow(0 0 3px <%= rStyles.border %>);">
+                <span style="font-family:'Cinzel',serif;font-size:0.68rem;font-weight:600;color:<%= rStyles.textColor %>;letter-spacing:0.04em;"><%= p.rank_name %></span>
+              </div>
+            </td>
+            <td class="center">
+              <div class="xp-cell" style="justify-content:center;">
+                <img src="/images/xp.png" alt="XP">
+                <span><%= p.xp %></span>
+              </div>
+            </td>
+            <td class="center" style="color:var(--green);font-family:'Cinzel',serif;"><%= p.wins || 0 %></td>
+            <td class="center" style="color:var(--text-muted);"><%= p.games_played || 0 %></td>
+            <td class="center" style="color:var(--text-muted);"><%= p.correct_answers || 0 %></td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+      <% } %>
+    </div>
+  </div>
+
+</body>
+</html>

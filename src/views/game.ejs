@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game – Python Adventure Quest</title>
+  <link rel="stylesheet" href="/css/globals.css">
+  <link rel="stylesheet" href="/css/game.css">
+</head>
+<body>
+<%
+  const me = states.find(s => s.user_id === currentUserId);
+  const opp = states.find(s => s.user_id !== currentUserId);
+  const myName = game.player1_id === currentUserId ? game.p1_username : game.p2_username;
+  const oppName = game.player1_id === currentUserId ? game.p2_username : game.p1_username;
+  const isP1 = game.player1_id === currentUserId;
+%>
+
+<!-- Inject items for JS -->
+<script>
+  const MY_ITEMS = <%- JSON.stringify(myItems) %>;
+</script>
+<!-- Inject game data for JS -->
+<script>
+  const ROOM_CODE    = '<%= roomCode %>';
+  const CURRENT_USER_ID = <%= currentUserId %>;
+  const PLAYER1_ID   = <%= game.player1_id %>;
+  const PLAYER2_ID   = <%= game.player2_id %>;
+  const MY_NAME      = '<%= myName %>';
+  const OPP_NAME     = '<%= oppName %>';
+  const IS_P1        = <%= isP1 %>;
+  let currentTurnId  = <%= game.current_turn_id %>;
+  let myHp           = <%= me ? me.hp : 5 %>;
+  let oppHp          = <%= opp ? opp.hp : 5 %>;
+  let myPos          = <%= me ? me.position : 0 %>;
+  let oppPos         = <%= opp ? opp.position : 0 %>;
+</script>
+
+<!-- ─── TOP: HP BARS ──────────────────────────────── -->
+<div class="hud">
+  <div class="hud-player" id="hud-me">
+    <div class="hud-name <%= isP1 ? 'glow-blue' : 'glow-purple' %>"><%= myName %></div>
+    <div class="hp-bar-wrap">
+      <div class="hp-bar-fill" id="hp-me" style="width:<%= me ? (me.hp/5)*100 : 100 %>%; background:<%= isP1 ? 'var(--p1-color)' : 'var(--p2-color)' %>"></div>
+    </div>
+    <div class="hp-text" id="hp-me-text"><%= me ? me.hp : 5 %> / 5 HP</div>
+    <div class="pos-text">Space <span id="pos-me"><%= me ? me.position : 0 %></span></div>
+  </div>
+
+  <div class="hud-center">
+    <div class="room-pill">Room: <strong><%= roomCode %></strong></div>
+    <div class="turn-indicator" id="turn-indicator">
+      <%= game.current_turn_id === currentUserId ? "⚔ Your Turn" : "⏳ Opponent's Turn" %>
+    </div>
+  </div>
+
+  <div class="hud-player right" id="hud-opp">
+    <div class="hud-name <%= !isP1 ? 'glow-blue' : 'glow-purple' %>"><%= oppName %></div>
+    <div class="hp-bar-wrap">
+      <div class="hp-bar-fill" id="hp-opp" style="width:<%= opp ? (opp.hp/5)*100 : 100 %>%; background:<%= !isP1 ? 'var(--p1-color)' : 'var(--p2-color)' %>"></div>
+    </div>
+    <div class="hp-text" id="hp-opp-text"><%= opp ? opp.hp : 5 %> / 5 HP</div>
+    <div class="pos-text">Space <span id="pos-opp"><%= opp ? opp.position : 0 %></span></div>
+  </div>
+</div>
+
+<!-- ─── BOARD ─────────────────────────────────────── -->
+<div class="board-wrap">
+  <div class="board-track" id="board-track">
+    <% for (let i = 1; i <= 20; i++) {
+      const sp = boardSpaces.find(s => s.space_number === i);
+      const type = sp ? sp.space_type : 'safe';
+      const meHere = me && me.position === i;
+      const oppHere = opp && opp.position === i;
+    %>
+    <div class="space space-<%= type %>" data-space="<%= i %>" id="space-<%= i %>">
+      <span class="space-num"><%= i %></span>
+      <% if (type === 'blessing') { %><span class="space-icon">🕯</span>
+      <% } else if (type === 'cursed') { %><span class="space-icon">💀</span>
+      <% } else if (type === 'shortcut') { %><span class="space-icon">➡</span>
+      <% } else if (type === 'scan') { %><span class="space-icon">📜</span>
+      <% } %>
+      <div class="space-tokens">
+        <% if (meHere) { %><div class="token token-me" title="<%= myName %>"></div><% } %>
+        <% if (oppHere) { %><div class="token token-opp" title="<%= oppName %>"></div><% } %>
+      </div>
+    </div>
+    <% } %>
+  </div>
+</div>
+
+<!-- ─── ACTION PANEL ──────────────────────────────── -->
+<div class="action-panel" id="action-panel">
+
+  <!-- ROLL phase -->
+  <div class="action-phase" id="phase-roll">
+    <div class="dice-display" id="dice-display">🎲</div>
+    <button class="btn btn-primary" id="btn-roll" onclick="rollDice()">Roll Dice</button>
+    <p id="roll-msg" class="action-msg"></p>
+  </div>
+
+  <!-- SCAN phase -->
+  <div class="action-phase hidden" id="phase-scan">
+    <div class="scan-prompt">
+      <div style="font-size:3rem">📜</div>
+      <h3>You landed on a Card Space!</h3>
+      <p style="color:var(--text-muted)">Draw from the card pile</p>
+      <button class="btn btn-gold" onclick="scanCard()">Draw Card</button>
+    </div>
+  </div>
+
+  <!-- QUESTION phase -->
+  <div class="action-phase hidden" id="phase-question">
+    <div class="question-card" id="question-card">
+      <div class="q-difficulty" id="q-difficulty"></div>
+      <p class="q-text" id="q-text"></p>
+      <div class="q-options" id="q-options"></div>
+    </div>
+  </div>
+
+  <!-- ANSWER FEEDBACK phase -->
+  <div class="action-phase hidden" id="phase-feedback">
+    <div class="feedback-box" id="feedback-box">
+      <div class="feedback-icon" id="feedback-icon"></div>
+      <p class="feedback-msg" id="feedback-msg"></p>
+      <p class="feedback-explanation" id="feedback-explanation"></p>
+      <p class="feedback-reward" id="feedback-reward"></p>
+    </div>
+  </div>
+
+  <!-- CARD OUTCOME (trap/windfall) phase -->
+  <div class="action-phase hidden" id="phase-outcome">
+    <div class="outcome-box" id="outcome-box">
+      <div class="outcome-icon" id="outcome-icon"></div>
+      <h3 id="outcome-name"></h3>
+      <p id="outcome-desc"></p>
+    </div>
+  </div>
+
+  <!-- WAITING phase -->
+  <div class="action-phase hidden" id="phase-waiting">
+    <div class="waiting-msg">
+      <div class="dot-row"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+      <p id="waiting-text">Waiting for opponent...</p>
+    </div>
+  </div>
+
+  <!-- GAME OVER -->
+  <div class="action-phase hidden" id="phase-gameover">
+    <div class="gameover-box" id="gameover-box">
+      <h2 id="gameover-title"></h2>
+      <p id="gameover-sub"></p>
+      <a href="/game/lobby" class="btn btn-primary" style="margin-top:1rem;">Return to Lobby</a>
+    </div>
+  </div>
+
+</div>
+
+<!-- ─── ITEMS BAR ──────────────────────────────────── -->
+<div class="items-bar" id="items-bar">
+  <div class="items-bar-title">
+    <span>⚗ Your Items</span>
+    <span id="items-turn-hint" class="items-turn-hint"></span>
+  </div>
+  <div class="items-row" id="items-row">
+    <% if (myItems.length === 0) { %>
+      <div class="no-items">No items — visit the <a href="/shop">Shop</a> before your next game</div>
+    <% } else { %>
+      <% myItems.forEach(item => {
+        const emojis = {
+          'immunity':'🛡️','double_damage':'⚔️','extra_turn':'⏳','fog':'🌫️',
+          'steal_elixir':'💜','reroll':'🎲','curse_scroll':'📜','hint':'🔮',
+          'time_warp':'🕰️','elixir_surge':'⚡','ghost_step':'👻'
+        };
+        const emoji = emojis[item.effect_type] || '✨';
+        const onCooldown = item.cooldown_remaining > 0;
+      %>
+        <div class="item-btn <%= onCooldown ? 'on-cooldown' : 'ready' %>"
+             id="item-<%= item.id %>"
+             data-ap-id="<%= item.id %>"
+             data-name="<%= item.name %>"
+             data-desc="<%= item.description %>"
+             data-cooldown="<%= item.cooldown_remaining %>">
+          <span class="item-emoji"><%= emoji %></span>
+          <span class="item-label"><%= item.name %></span>
+          <% if (onCooldown) { %>
+            <span class="cooldown-badge">🕐 <%= item.cooldown_remaining %></span>
+          <% } else { %>
+            <span class="ready-badge">Ready</span>
+          <% } %>
+        </div>
+      <% }); %>
+    <% } %>
+  </div>
+</div>
+
+<!-- ─── EVENT LOG ─────────────────────────────────── -->
+<div class="event-log" id="event-log">
+  <div class="log-title">Battle Log</div>
+  <div class="log-entries" id="log-entries"></div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/game.js"></script>
+</body>
+</html>

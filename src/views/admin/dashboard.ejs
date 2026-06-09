@@ -1,0 +1,59 @@
+<%
+  const body = `
+<div class="admin-header">
+  <h1>MC Dashboard</h1>
+  <p>Monitor games, manage content, oversee the realm</p>
+</div>
+
+<!-- Stat chips -->
+<div class="stat-chips">
+  <div class="stat-chip">
+    <span class="chip-val">${stats.total_players}</span>
+    <span class="chip-lbl">Players</span>
+  </div>
+  <div class="stat-chip">
+    <span class="chip-val">${stats.active_games}</span>
+    <span class="chip-lbl">Active Games</span>
+  </div>
+  <div class="stat-chip">
+    <span class="chip-val">${stats.total_games}</span>
+    <span class="chip-lbl">Total Games</span>
+  </div>
+  <div class="stat-chip">
+    <span class="chip-val">${stats.total_questions}</span>
+    <span class="chip-lbl">Questions</span>
+  </div>
+</div>
+
+<!-- Recent games -->
+<div class="a-card">
+  <h2>Recent &amp; Active Games</h2>
+  <div class="a-table-wrap">
+    <table>
+      <thead><tr>
+        <th>Room</th><th>Player 1</th><th>P1 HP</th><th>Player 2</th><th>P2 HP</th><th>Status</th><th>Winner</th><th>Action</th>
+      </tr></thead>
+      <tbody>
+        ${recentGames.length === 0 ? '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:2rem;">No games yet</td></tr>' : recentGames.map(g => \`
+        <tr>
+          <td style="font-family:'Cinzel',serif;color:var(--gold);letter-spacing:0.1em;">\${g.room_code}</td>
+          <td>\${g.p1_name}</td>
+          <td style="color:\${g.p1_hp > 2 ? 'var(--green)' : 'var(--red)'};">\${g.p1_hp != null ? g.p1_hp : '—'}</td>
+          <td>\${g.p2_name || '—'}</td>
+          <td style="color:\${g.p2_hp > 2 ? 'var(--green)' : 'var(--red)'};">\${g.p2_hp != null ? g.p2_hp : '—'}</td>
+          <td><span class="status status-\${g.status}">\${g.status}</span></td>
+          <td style="color:var(--gold);">\${g.winner_name || '—'}</td>
+          <td>
+            \${g.status === 'active' ? \`
+              <form action="/admin/games/reset/\${g.room_code}" method="POST" style="display:inline">
+                <button class="btn-danger-sm" onclick="return confirm('Force end this game?')">End Game</button>
+              </form>\` : '—'}
+          </td>
+        </tr>\`).join('')}
+      </tbody>
+    </table>
+  </div>
+</div>
+`;
+%>
+<%- include('layout', { title: 'Overview', tab, body }) %>

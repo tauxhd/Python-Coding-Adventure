@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile – Python Adventure Quest</title>
+  <link rel="stylesheet" href="/css/globals.css">
+  <style>
+    body {
+      background:
+        radial-gradient(ellipse at 70% 20%, rgba(74,38,168,0.15) 0%, transparent 55%),
+        radial-gradient(ellipse at 20% 70%, rgba(176,77,255,0.1) 0%, transparent 50%),
+        var(--bg-deep);
+    }
+    .profile-wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    /* ── RANK UP BANNER ── */
+    .rankup-banner {
+      background: linear-gradient(135deg, rgba(240,192,64,0.15), rgba(240,192,64,0.05));
+      border: 1px solid var(--gold);
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      animation: glow-pulse 2s ease-in-out infinite;
+    }
+    @keyframes glow-pulse {
+      0%,100% { box-shadow: 0 0 12px rgba(240,192,64,0.2); }
+      50%      { box-shadow: 0 0 28px rgba(240,192,64,0.5); }
+    }
+    .rankup-banner .icon { font-size: 2rem; }
+    .rankup-banner h3 { color: var(--gold); font-size: 1rem; margin-bottom: 0.2rem; }
+    .rankup-banner p { color: var(--text-muted); font-size: 0.85rem; }
+
+    /* ── HEADER CARD ── */
+    .profile-header {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.8rem;
+      margin-bottom: 1.5rem;
+    }
+    .avatar-big {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4a26a8, #b04dff);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Cinzel', serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+      box-shadow: 0 0 20px rgba(176,77,255,0.4);
+    }
+    .profile-info { flex: 1; }
+    .profile-info h1 {
+      font-size: 1.6rem;
+      color: var(--gold);
+      text-shadow: 0 0 16px rgba(240,192,64,0.4);
+      margin-bottom: 0.4rem;
+    }
+    .profile-info .meta {
+      display: flex;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 0.8rem;
+    }
+    .profile-currencies {
+      display: flex;
+      gap: 1rem;
+      margin-top: 0.5rem;
+    }
+
+    /* ── XP BAR ── */
+    .xp-section { margin-bottom: 1.5rem; }
+    .xp-label {
+      display: flex;
+      justify-content: space-between;
+      font-family: 'Cinzel', serif;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+      letter-spacing: 0.06em;
+    }
+    .xp-bar-wrap {
+      height: 14px;
+      background: var(--bg-deep);
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .xp-bar-fill {
+      height: 100%;
+      border-radius: 7px;
+      background: linear-gradient(90deg, #4a26a8, var(--gold));
+      transition: width 1s ease;
+      box-shadow: 0 0 8px rgba(240,192,64,0.4);
+    }
+    .xp-maxed {
+      text-align: center;
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+      color: var(--gold);
+      padding: 0.4rem 0;
+    }
+
+    /* ── GRID ── */
+    .profile-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.2rem;
+    }
+    @media (max-width: 620px) { .profile-grid { grid-template-columns: 1fr; } }
+
+    .p-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.4rem;
+    }
+    .p-card h2 {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+
+    /* ── STATS ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.8rem;
+    }
+    .stat-box {
+      background: var(--bg-deep);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      padding: 0.8rem;
+      text-align: center;
+    }
+    .stat-box .val {
+      font-family: 'Cinzel', serif;
+      font-size: 1.5rem;
+      color: var(--gold);
+      display: block;
+    }
+    .stat-box .lbl {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* ── ATTRIBUTES ── */
+    .attr-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.7rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .attr-row:last-of-type { border-bottom: none; }
+    .attr-left { display: flex; align-items: center; gap: 0.6rem; }
+    .attr-icon { font-size: 1.2rem; }
+    .attr-name { font-family: 'Cinzel', serif; font-size: 0.85rem; }
+    .attr-desc { font-size: 0.75rem; color: var(--text-muted); }
+    .attr-right { display: flex; align-items: center; gap: 0.6rem; }
+    .attr-val {
+      font-family: 'Cinzel', serif;
+      font-size: 1.1rem;
+      color: var(--p2-color);
+      min-width: 1.5rem;
+      text-align: center;
+    }
+    .attr-dots {
+      display: flex;
+      gap: 3px;
+    }
+    .attr-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      border: 1px solid var(--border-glow);
+      background: var(--bg-deep);
+    }
+    .attr-dot.filled { background: var(--p2-color); box-shadow: 0 0 4px var(--p2-color); }
+
+    .btn-spend {
+      padding: 0.3rem 0.8rem;
+      font-size: 0.78rem;
+      border-radius: 6px;
+    }
+    .points-available {
+      background: rgba(240,192,64,0.12);
+      border: 1px solid var(--gold);
+      border-radius: 8px;
+      padding: 0.6rem 1rem;
+      margin-bottom: 1rem;
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+      color: var(--gold);
+      text-align: center;
+    }
+    .no-points { color: var(--text-muted); font-size: 0.78rem; text-align: center; padding-top: 0.5rem; }
+
+    /* ── RANK LADDER ── */
+    .rank-ladder { display: flex; flex-direction: column; gap: 0.5rem; }
+    .rank-step {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 0.6rem 0.8rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg-deep);
+      opacity: 0.5;
+    }
+    .rank-step.current {
+      border-color: var(--gold);
+      background: rgba(240,192,64,0.08);
+      opacity: 1;
+    }
+    .rank-step.achieved { opacity: 0.8; }
+    .rank-step .step-icon { font-size: 1.2rem; }
+    .rank-step .step-info { flex: 1; }
+    .rank-step .step-name { font-family: 'Cinzel', serif; font-size: 0.82rem; }
+    .rank-step .step-xp  { font-size: 0.72rem; color: var(--text-muted); }
+    .rank-step .current-tag {
+      font-family: 'Cinzel', serif;
+      font-size: 0.65rem;
+      color: var(--gold);
+      background: rgba(240,192,64,0.15);
+      border-radius: 10px;
+      padding: 0.1rem 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <%- include('partials/navbar') %>
+
+  <div class="profile-wrap">
+
+    <!-- Rank up banner -->
+    <% if (rankUp && rankUp.ranked_up) { %>
+    <div class="rankup-banner">
+      <span class="icon">🏆</span>
+      <div>
+        <h3>Rank Up! You are now <%= rankUp.new_rank %></h3>
+        <p>+<%= rankUp.points_gained %> attribute point<%= rankUp.points_gained > 1 ? 's' : '' %> available to spend</p>
+      </div>
+    </div>
+    <% } %>
+
+    <!-- Profile header -->
+    <div class="profile-header">
+      <div class="avatar-big"><%= user.username.charAt(0).toUpperCase() %></div>
+      <div class="profile-info">
+        <h1><%= user.username %></h1>
+        <div class="meta">
+          <%
+            const rankImgMap = {'Code Initiate':'codeinitiate','Spellbinder':'spellbinder','Arcane Scholar':'arcanescholar','Grand Archmage':'grandarchmage'};
+            const rankStyleMap = {
+              'Code Initiate':  { bg:'linear-gradient(135deg,#2a2a35,#3a3a45)', border:'#666',    glow:'rgba(180,180,200,0.2)',  tc:'#bbb'    },
+              'Spellbinder':    { bg:'linear-gradient(135deg,#0d2035,#1a3a55)', border:'#4ab3ff', glow:'rgba(74,179,255,0.3)',   tc:'#4ab3ff' },
+              'Arcane Scholar': { bg:'linear-gradient(135deg,#1a0d35,#2e1555)', border:'#b04dff', glow:'rgba(176,77,255,0.35)',  tc:'#c87dff' },
+              'Grand Archmage': { bg:'linear-gradient(135deg,#2a1a00,#4a3000)', border:'#f0c040', glow:'rgba(240,192,64,0.4)',   tc:'#f0c040' },
+            };
+            const rS = rankStyleMap[user.rank_name];
+          %>
+          <div style="
+            display:inline-flex;align-items:center;gap:0.65rem;
+            background:<%= rS.bg %>;
+            border:1px solid <%= rS.border %>;
+            border-radius:12px;
+            padding:0.5rem 1rem 0.5rem 0.6rem;
+            box-shadow:0 0 16px <%= rS.glow %>;
+          ">
+            <img src="/images/<%= rankImgMap[user.rank_name] %>.png" alt="<%= user.rank_name %>"
+                 style="height:40px;width:40px;object-fit:contain;filter:drop-shadow(0 0 6px <%= rS.border %>);">
+            <span style="font-family:'Cinzel',serif;font-size:0.95rem;font-weight:600;color:<%= rS.tc %>;letter-spacing:0.06em;"><%= user.rank_name %></span>
+          </div>
+        </div>
+        <div class="profile-currencies">
+          <span class="stat-pill">
+            <img src="/images/xp.png" alt="XP" style="height:18px;">
+            <span class="val"><%= user.xp %></span> XP
+          </span>
+          <span class="stat-pill">
+            <img src="/images/elixir.png" alt="Elixir" style="height:18px;">
+            <span class="val"><%= user.elixir %></span> Elixir
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- XP bar -->
+    <div class="p-card xp-section">
+      <% if (nextRank) { %>
+        <div class="xp-label">
+          <span><%= currentRank.name %></span>
+          <span><%= xpIntoRank %> / <%= xpNeeded %> XP → <%= nextRank.name %></span>
+        </div>
+        <div class="xp-bar-wrap">
+          <div class="xp-bar-fill" style="width:<%= xpPercent %>%"></div>
+        </div>
+      <% } else { %>
+        <div class="xp-label"><span>Grand Archmage</span><span><%= user.xp %> XP total</span></div>
+        <div class="xp-bar-wrap">
+          <div class="xp-bar-fill" style="width:100%"></div>
+        </div>
+        <div class="xp-maxed">✨ Maximum Rank Achieved</div>
+      <% } %>
+    </div>
+
+    <div class="profile-grid">
+
+      <!-- Battle Stats -->
+      <div class="p-card">
+        <h2>Battle Stats</h2>
+        <div class="stats-grid">
+          <div class="stat-box">
+            <span class="val"><%= stats.games_played || 0 %></span>
+            <span class="lbl">Games Played</span>
+          </div>
+          <div class="stat-box">
+            <span class="val"><%= stats.wins || 0 %></span>
+            <span class="lbl">Victories</span>
+          </div>
+          <div class="stat-box">
+            <span class="val"><%= stats.correct_answers || 0 %></span>
+            <span class="lbl">Correct Answers</span>
+          </div>
+          <div class="stat-box">
+            <span class="val"><%= stats.games_played > 0 ? Math.round((stats.wins / stats.games_played) * 100) : 0 %>%</span>
+            <span class="lbl">Win Rate</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Attributes -->
+      <div class="p-card">
+        <h2>Attributes</h2>
+
+        <% if (user.attr_points > 0) { %>
+          <div class="points-available">⚡ <%= user.attr_points %> point<%= user.attr_points > 1 ? 's' : '' %> available to spend</div>
+        <% } %>
+
+        <%
+          const attrs = [
+            { key: 'damage_attr',  img: 'damage',  name: 'Damage',  val: user.damage_attr,  desc: '+0.5 dmg per point on lap finish' },
+            { key: 'defense_attr', img: 'defense', name: 'Defense', val: user.defense_attr, desc: '-0.5 dmg received per point' },
+            { key: 'agility_attr', img: 'agility', name: 'Agility', val: user.agility_attr, desc: '10% dodge chance per point' },
+          ];
+        %>
+
+        <% attrs.forEach(attr => { %>
+        <div class="attr-row">
+          <div class="attr-left">
+            <img src="/images/<%= attr.img %>.png" alt="<%= attr.name %>" style="height:32px;width:32px;object-fit:contain;">
+            <div>
+              <div class="attr-name"><%= attr.name %></div>
+              <div class="attr-desc"><%= attr.desc %></div>
+            </div>
+          </div>
+          <div class="attr-right">
+            <div class="attr-dots">
+              <% for (let i = 0; i < 6; i++) { %>
+                <div class="attr-dot <%= i < attr.val ? 'filled' : '' %>"></div>
+              <% } %>
+            </div>
+            <span class="attr-val"><%= attr.val %></span>
+            <% if (user.attr_points > 0) { %>
+              <form action="/profile/attribute" method="POST">
+                <input type="hidden" name="stat" value="<%= attr.key %>">
+                <button type="submit" class="btn btn-gold btn-spend">+</button>
+              </form>
+            <% } %>
+          </div>
+        </div>
+        <% }); %>
+
+        <% if (user.attr_points === 0) { %>
+          <p class="no-points">Earn XP and rank up to gain attribute points</p>
+        <% } %>
+      </div>
+
+      <!-- Rank Ladder -->
+      <div class="p-card" style="grid-column: 1 / -1;">
+        <h2>Rank Progression</h2>
+        <div class="rank-ladder">
+          <%
+            const rankImgs = ['codeinitiate', 'spellbinder', 'arcanescholar', 'grandarchmage'];
+            const rankThresholds = ['0 XP', '100 XP', '300 XP', '600 XP'];
+            const rankNames = ['Code Initiate', 'Spellbinder', 'Arcane Scholar', 'Grand Archmage'];
+            const rankAttr = ['-', '+2 attr pts', '+2 attr pts', '+2 attr pts'];
+          %>
+          <% rankNames.forEach((name, i) => {
+            const isCurrent = user.rank_name === name;
+            const isAchieved = user.xp >= [0, 100, 300, 600][i];
+          %>
+          <div class="rank-step <%= isCurrent ? 'current' : isAchieved ? 'achieved' : '' %>">
+            <img src="/images/<%= rankImgs[i] %>.png" alt="<%= name %>" style="height:32px;width:32px;object-fit:contain;flex-shrink:0;">
+            <div class="step-info">
+              <div class="step-name"><%= name %></div>
+              <div class="step-xp"><%= rankThresholds[i] %> · <%= rankAttr[i] %></div>
+            </div>
+            <% if (isCurrent) { %><span class="current-tag">Current</span><% } %>
+            <% if (isAchieved && !isCurrent) { %><span style="color:var(--green);font-size:0.9rem;">✓</span><% } %>
+          </div>
+          <% }); %>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

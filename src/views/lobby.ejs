@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lobby – Python Adventure Quest</title>
+  <link rel="stylesheet" href="/css/globals.css">
+  <style>
+    body {
+      background:
+        radial-gradient(ellipse at 30% 60%, rgba(74,38,168,0.2) 0%, transparent 55%),
+        radial-gradient(ellipse at 70% 20%, rgba(176,77,255,0.12) 0%, transparent 50%),
+        var(--bg-deep);
+    }
+    .lobby-wrap {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem;
+    }
+    .lobby-header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    .lobby-header h1 {
+      font-size: 2rem;
+      color: var(--gold);
+      text-shadow: 0 0 24px rgba(240,192,64,0.5);
+      margin-bottom: 0.4rem;
+    }
+    .lobby-header p { color: var(--text-muted); font-size: 1rem; }
+
+    .lobby-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1.5rem;
+    }
+    @media (max-width: 900px) { .lobby-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 600px) { .lobby-grid { grid-template-columns: 1fr; } }
+
+    .lobby-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      text-align: center;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .lobby-card:hover {
+      border-color: var(--border-glow);
+      box-shadow: 0 0 30px rgba(91,63,168,0.25);
+    }
+    .lobby-card .icon {
+      font-size: 2.8rem;
+      margin-bottom: 1rem;
+    }
+    .lobby-card h2 {
+      font-size: 1.15rem;
+      margin-bottom: 0.5rem;
+      color: var(--text-main);
+    }
+    .lobby-card p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+      min-height: 2.5rem;
+    }
+
+    .room-input {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .room-input input {
+      flex: 1;
+      padding: 0.7rem 1rem;
+      background: var(--bg-deep);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-family: 'Cinzel', serif;
+      font-size: 1rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      outline: none;
+      text-align: center;
+    }
+    .room-input input:focus {
+      border-color: var(--border-glow);
+      box-shadow: 0 0 10px rgba(91,63,168,0.3);
+    }
+
+    .player-info {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      background: var(--bg-deep);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .player-info .avatar {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4a26a8, #b04dff);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Cinzel', serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .player-info .details { text-align: left; }
+    .player-info .name { font-family: 'Cinzel', serif; font-size: 1rem; color: var(--text-main); }
+    .player-info .stats { display: flex; gap: 1rem; margin-top: 0.3rem; }
+
+    #qr-reader { border-radius: 8px; overflow: hidden; }
+    #qr-reader > video { width: 100% !important; }
+    #qr-reader__scan_region { border-radius: 8px !important; }
+    #qr-reader__dashboard { display: none; }
+  </style>
+</head>
+<body>
+  <%- include('partials/navbar') %>
+
+  <div class="lobby-wrap">
+    <div class="lobby-header">
+      <h1>Battle Lobby</h1>
+      <p>Create a room or enter a code to challenge another wizard</p>
+    </div>
+
+    <!-- Player info strip -->
+    <div class="player-info">
+      <div class="avatar"><%= user.username.charAt(0).toUpperCase() %></div>
+      <div class="details">
+        <div class="name"><%= user.username %></div>
+        <div class="stats">
+          <span class="rank-badge rank-initiate"><%= user.rank_name %></span>
+          <span class="stat-pill">
+            <img src="/images/xp.png" alt="XP" style="height:16px;">
+            <span class="val"><%= user.xp %></span>
+          </span>
+          <span class="stat-pill">
+            <img src="/images/elixir.png" alt="Elixir" style="height:16px;">
+            <span class="val"><%= user.elixir %></span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <% if (error) { %>
+      <div class="alert alert-error" style="margin-bottom:1.5rem;"><%= error %></div>
+    <% } %>
+
+    <% if (equippedCount === 0) { %>
+      <div style="display:flex;align-items:center;gap:0.8rem;background:rgba(240,192,64,0.08);border:1px solid rgba(240,192,64,0.35);border-radius:10px;padding:0.9rem 1.2rem;margin-bottom:1.5rem;">
+        <span style="font-size:1.4rem;">⚠️</span>
+        <div>
+          <span style="font-family:'Cinzel',serif;font-size:0.88rem;color:var(--gold);">No cards equipped!</span>
+          <span style="color:var(--text-muted);font-size:0.85rem;margin-left:0.5rem;">You'll enter battle with no items.</span>
+          <a href="/bag" style="margin-left:0.8rem;font-family:'Cinzel',serif;font-size:0.82rem;color:var(--p2-color);text-decoration:underline;">Equip cards →</a>
+        </div>
+      </div>
+    <% } else if (equippedCount < 3) { %>
+      <div style="display:flex;align-items:center;gap:0.8rem;background:rgba(74,179,255,0.08);border:1px solid rgba(74,179,255,0.25);border-radius:10px;padding:0.9rem 1.2rem;margin-bottom:1.5rem;">
+        <span style="font-size:1.4rem;">🎒</span>
+        <div>
+          <span style="font-family:'Cinzel',serif;font-size:0.88rem;color:var(--p1-color);"><%= equippedCount %>/3 cards equipped.</span>
+          <a href="/bag" style="margin-left:0.8rem;font-family:'Cinzel',serif;font-size:0.82rem;color:var(--p2-color);text-decoration:underline;">Fill remaining slots →</a>
+        </div>
+      </div>
+    <% } else { %>
+      <div style="display:flex;align-items:center;gap:0.8rem;background:rgba(61,220,132,0.08);border:1px solid rgba(61,220,132,0.25);border-radius:10px;padding:0.9rem 1.2rem;margin-bottom:1.5rem;">
+        <span style="font-size:1.4rem;">✅</span>
+        <div>
+          <span style="font-family:'Cinzel',serif;font-size:0.88rem;color:var(--green);">3/3 cards equipped — ready for battle!</span>
+        </div>
+      </div>
+    <% } %>
+
+    <div class="lobby-grid">
+      <!-- Create Game -->
+      <div class="lobby-card">
+        <div class="icon">⚔️</div>
+        <h2>Create Game</h2>
+        <p>Start a new room and share the code with your opponent.</p>
+        <form action="/game/create" method="POST">
+          <button type="submit" class="btn btn-primary btn-full">Create Room</button>
+        </form>
+      </div>
+
+      <!-- Join Game -->
+      <div class="lobby-card">
+        <div class="icon">🔮</div>
+        <h2>Join Game</h2>
+        <p>Enter the 6-character room code from your opponent.</p>
+        <form action="/game/join" method="POST">
+          <div class="room-input">
+            <input type="text" name="room_code" placeholder="ABC123"
+                   maxlength="6" minlength="6" required autocomplete="off">
+          </div>
+          <button type="submit" class="btn btn-gold btn-full">Join Room</button>
+        </form>
+      </div>
+
+      <!-- Scan QR Code -->
+      <div class="lobby-card">
+        <div class="icon">📱</div>
+        <h2>Scan QR Code</h2>
+        <p>Scan your opponent's QR code with your phone camera.</p>
+        <button type="button" class="btn btn-primary btn-full" onclick="openQRScanner()">Scan Code</button>
+        <div id="scanner-box" style="display:none;margin-top:1rem;text-align:left;">
+          <div id="qr-reader" style="width:100%;"></div>
+          <button type="button" class="btn btn-outline btn-sm" style="width:100%;margin-top:0.5rem;" onclick="closeQRScanner()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <script>
+    let html5QrcodeScanner = null;
+
+    function openQRScanner() {
+      document.getElementById('scanner-box').style.display = 'block';
+
+      const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+      const qrReader = new Html5Qrcode("qr-reader");
+
+      qrReader.start(
+        { facingMode: "environment" },
+        config,
+        (decodedText) => {
+          // Extract room code from URL or plain text
+          let roomCode = decodedText;
+          if (decodedText.includes('code=')) {
+            roomCode = decodedText.split('code=')[1];
+          }
+          qrReader.stop();
+          window.location.href = '/game/join?code=' + roomCode;
+        },
+        (err) => {
+          // Ignore scan errors while scanning
+        }
+      );
+      html5QrcodeScanner = qrReader;
+    }
+
+    function closeQRScanner() {
+      if (html5QrcodeScanner) {
+        html5QrcodeScanner.stop();
+      }
+      document.getElementById('scanner-box').style.display = 'none';
+    }
+  </script>
+</body>
+</html>

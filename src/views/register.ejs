@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register – Python Adventure Quest</title>
+  <link rel="stylesheet" href="/css/globals.css">
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background:
+        radial-gradient(ellipse at 80% 50%, rgba(74,38,168,0.18) 0%, transparent 60%),
+        radial-gradient(ellipse at 20% 20%, rgba(176,77,255,0.1) 0%, transparent 50%),
+        var(--bg-deep);
+    }
+    .auth-wrapper {
+      width: 100%;
+      max-width: 440px;
+      padding: 1rem;
+      position: relative;
+      z-index: 1;
+    }
+    .auth-logo {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .auth-logo h1 {
+      font-size: 1.6rem;
+      color: var(--gold);
+      text-shadow: 0 0 20px rgba(240,192,64,0.5);
+    }
+    .auth-logo p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-top: 0.3rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      font-family: 'Cinzel', serif;
+    }
+    .auth-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.2rem;
+      box-shadow: 0 0 40px rgba(176,77,255,0.2);
+    }
+    .auth-card h2 {
+      font-size: 1.2rem;
+      margin-bottom: 1.5rem;
+      color: var(--text-main);
+    }
+    .auth-footer {
+      text-align: center;
+      margin-top: 1.2rem;
+      color: var(--text-muted);
+      font-size: 0.92rem;
+    }
+    .password-hint {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.3rem;
+    }
+    .particles {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+    .particle {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0;
+      animation: float-up linear infinite;
+    }
+    @keyframes float-up {
+      0%   { transform: translateY(100vh) scale(0); opacity: 0; }
+      10%  { opacity: 0.6; }
+      90%  { opacity: 0.3; }
+      100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="particles" id="particles"></div>
+
+  <div class="auth-wrapper">
+    <div class="auth-logo">
+      <img src="/images/logo.png" alt="Python Adventure Quest" style="width:100%;max-width:320px;">
+    </div>
+
+    <div class="auth-card">
+      <h2>Create Your Wizard</h2>
+
+      <% if (error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+
+      <form action="/register" method="POST">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username"
+                 placeholder="Your wizard name" minlength="3" maxlength="20" required>
+          <p class="password-hint">3–20 characters</p>
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email"
+                 placeholder="your@email.com" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password"
+                 placeholder="••••••••" minlength="6" required>
+          <p class="password-hint">Minimum 6 characters</p>
+        </div>
+        <div class="form-group">
+          <label for="confirm_password">Confirm Password</label>
+          <input type="password" id="confirm_password" name="confirm_password"
+                 placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full" style="margin-top:0.5rem;">
+          Create Account
+        </button>
+      </form>
+    </div>
+
+    <div class="auth-footer">
+      Already have an account? <a href="/login">Login</a>
+    </div>
+  </div>
+
+  <script>
+    const container = document.getElementById('particles');
+    for (let i = 0; i < 25; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.left = Math.random() * 100 + 'vw';
+      p.style.animationDuration = (6 + Math.random() * 10) + 's';
+      p.style.animationDelay = (Math.random() * 10) + 's';
+      p.style.background = Math.random() > 0.5 ? '#b04dff' : '#f0c040';
+      const size = (1 + Math.random() * 3) + 'px';
+      p.style.width = size;
+      p.style.height = size;
+      container.appendChild(p);
+    }
+  </script>
+</body>
+</html>

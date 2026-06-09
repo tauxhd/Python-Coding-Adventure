@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cards – Admin</title>
+  <link rel="stylesheet" href="/css/globals.css">
+  <style>
+    body{background:var(--bg-deep);}
+    .admin-shell{display:flex;min-height:100vh;}
+    .admin-sidebar{width:210px;background:var(--bg-dark);border-right:1px solid var(--border);padding:1.5rem 0;flex-shrink:0;position:sticky;top:0;height:100vh;}
+    .sidebar-logo{padding:0 1rem 1.2rem;border-bottom:1px solid var(--border);margin-bottom:1rem;}
+    .sidebar-logo img{width:100%;}
+    .sidebar-label{font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:0.15em;color:var(--text-muted);text-transform:uppercase;padding:0 1rem;margin-bottom:0.3rem;}
+    .sidebar-nav{list-style:none;margin-bottom:1.2rem;}
+    .sidebar-nav a{display:flex;align-items:center;gap:0.5rem;padding:0.55rem 1rem;font-family:'Cinzel',serif;font-size:0.8rem;color:var(--text-muted);transition:all 0.15s;}
+    .sidebar-nav a:hover{background:var(--bg-hover);color:var(--text-main);}
+    .sidebar-nav a.active{background:rgba(91,63,168,0.2);color:var(--gold);border-left:3px solid var(--gold);}
+    .admin-main{flex:1;padding:2rem;overflow-x:hidden;}
+    .page-header{margin-bottom:1.5rem;}
+    .page-header h1{font-size:1.4rem;color:var(--gold);}
+    .page-header p{color:var(--text-muted);font-size:0.88rem;}
+    .a-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:1.4rem;margin-bottom:1.5rem;}
+    .a-card h2{font-size:0.75rem;color:var(--text-muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:1rem;}
+    .a-table-wrap{border-radius:10px;overflow:hidden;border:1px solid var(--border);}
+    table{width:100%;border-collapse:collapse;}
+    thead tr{background:var(--bg-deep);}
+    th{font-family:'Cinzel',serif;font-size:0.68rem;letter-spacing:0.1em;color:var(--text-muted);text-transform:uppercase;padding:0.65rem 0.8rem;text-align:left;}
+    td{padding:0.65rem 0.8rem;font-size:0.83rem;border-top:1px solid rgba(255,255,255,0.04);vertical-align:middle;}
+    tbody tr:hover{background:var(--bg-hover);}
+    .a-input{background:var(--bg-deep);border:1px solid var(--border);border-radius:7px;color:var(--text-main);padding:0.4rem 0.7rem;font-family:'Crimson Text',serif;font-size:0.88rem;outline:none;}
+    .a-input:focus{border-color:var(--border-glow);}
+    textarea.a-input{resize:vertical;min-height:55px;}
+    select.a-input option{background:var(--bg-deep);}
+    .form-label{font-family:'Cinzel',serif;font-size:0.68rem;color:var(--text-muted);text-transform:uppercase;display:block;margin-bottom:0.25rem;letter-spacing:0.08em;}
+    .add-form{display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;}
+    .add-form .full{grid-column:1/-1;}
+    .btn-danger-sm{background:rgba(255,77,106,0.15);border:1px solid var(--red);color:var(--red);border-radius:6px;cursor:pointer;padding:0.28rem 0.65rem;font-family:'Cinzel',serif;font-size:0.7rem;transition:background 0.15s;}
+    .btn-danger-sm:hover{background:rgba(255,77,106,0.3);}
+    .btn-edit-sm{background:rgba(91,63,168,0.2);border:1px solid var(--border-glow);color:var(--text-main);border-radius:6px;cursor:pointer;padding:0.28rem 0.65rem;font-family:'Cinzel',serif;font-size:0.7rem;transition:background 0.15s;}
+    .btn-edit-sm:hover{background:rgba(91,63,168,0.4);}
+    .diff-common{color:#aaa;}.diff-rare{color:var(--p1-color);}.diff-legendary{color:var(--gold);}
+    .type-trap{color:var(--red);}.type-windfall{color:var(--green);}
+    /* Inner tabs */
+    .inner-tabs{display:flex;gap:0.5rem;margin-bottom:1.2rem;}
+    .inner-tab{padding:0.4rem 1.2rem;border-radius:20px;border:1px solid var(--border);background:var(--bg-deep);color:var(--text-muted);font-family:'Cinzel',serif;font-size:0.78rem;cursor:pointer;transition:all 0.15s;}
+    .inner-tab.active,.inner-tab:hover{border-color:var(--border-glow);color:var(--text-main);background:var(--bg-hover);}
+    .inner-section{display:none;} .inner-section.show{display:block;}
+    /* Modal */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;align-items:center;justify-content:center;}
+    .modal-overlay.open{display:flex;}
+    .modal-box{background:var(--bg-card);border:1px solid var(--border-glow);border-radius:14px;padding:1.8rem;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;}
+    .modal-box h3{font-size:0.95rem;margin-bottom:1rem;color:var(--gold);}
+    .modal-close{float:right;cursor:pointer;color:var(--text-muted);font-size:1.1rem;line-height:1;}
+    .filter-row{display:flex;gap:0.5rem;margin-bottom:0.8rem;flex-wrap:wrap;}
+    .filter-btn{padding:0.3rem 0.8rem;border-radius:20px;border:1px solid var(--border);background:var(--bg-deep);color:var(--text-muted);font-family:'Cinzel',serif;font-size:0.72rem;cursor:pointer;transition:all 0.15s;}
+    .filter-btn.active,.filter-btn:hover{border-color:var(--border-glow);color:var(--text-main);background:var(--bg-hover);}
+  </style>
+</head>
+<body>
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <div class="sidebar-logo"><img src="/images/logo.png" alt="Admin"></div>
+    <div class="sidebar-label">Admin</div>
+    <ul class="sidebar-nav">
+      <li><a href="/admin/cards" class="active">📜 Cards</a></li>
+      <li><a href="/admin/players">👥 Players</a></li>
+    </ul>
+    <ul class="sidebar-nav">
+      <li><a href="/logout">🚪 Logout</a></li>
+    </ul>
+  </aside>
+
+  <main class="admin-main">
+    <div class="page-header">
+      <h1>Card Management</h1>
+      <p>Manage Python questions and card outcomes (traps &amp; windfalls)</p>
+    </div>
+
+    <% if (error) { %><div class="alert alert-error" style="margin-bottom:1rem;"><%= error %></div><% } %>
+    <% if (success) { %><div class="alert alert-success" style="margin-bottom:1rem;"><%= success %></div><% } %>
+
+    <!-- Inner tabs -->
+    <div class="inner-tabs">
+      <button class="inner-tab active" onclick="showSection('questions',this)">📜 Questions (<%= questions.length %>)</button>
+      <button class="inner-tab" onclick="showSection('outcomes',this)">🃏 Outcomes (<%= outcomes.length %>)</button>
+    </div>
+
+    <!-- ── QUESTIONS ── -->
+    <div class="inner-section show" id="sec-questions">
+
+      <!-- Add question -->
+      <div class="a-card">
+        <h2>Add Question</h2>
+        <form action="/admin/questions/add" method="POST" class="add-form">
+          <div>
+            <label class="form-label">Difficulty</label>
+            <select name="difficulty" class="a-input" style="width:100%;" required>
+              <option value="common">Common</option>
+              <option value="rare">Rare</option>
+              <option value="legendary">Legendary</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Correct Answer</label>
+            <select name="correct_ans" class="a-input" style="width:100%;" required>
+              <option value="a">A</option><option value="b">B</option>
+              <option value="c">C</option><option value="d">D</option>
+            </select>
+          </div>
+          <div class="full">
+            <label class="form-label">Question Text</label>
+            <textarea name="question_text" class="a-input" style="width:100%;" required></textarea>
+          </div>
+          <div><label class="form-label">Option A</label><input type="text" name="option_a" class="a-input" style="width:100%;" required></div>
+          <div><label class="form-label">Option B</label><input type="text" name="option_b" class="a-input" style="width:100%;" required></div>
+          <div><label class="form-label">Option C</label><input type="text" name="option_c" class="a-input" style="width:100%;" required></div>
+          <div><label class="form-label">Option D</label><input type="text" name="option_d" class="a-input" style="width:100%;" required></div>
+          <div class="full">
+            <label class="form-label">Explanation</label>
+            <input type="text" name="explanation" class="a-input" style="width:100%;" required>
+          </div>
+          <div class="full"><button type="submit" class="btn btn-primary">Add Question</button></div>
+        </form>
+      </div>
+
+      <!-- Question list -->
+      <div class="a-card">
+        <h2>All Questions</h2>
+        <div class="filter-row">
+          <button class="filter-btn active" onclick="filterQ('all',this)">All</button>
+          <button class="filter-btn" onclick="filterQ('common',this)">Common</button>
+          <button class="filter-btn" onclick="filterQ('rare',this)">Rare</button>
+          <button class="filter-btn" onclick="filterQ('legendary',this)">Legendary</button>
+        </div>
+        <div class="a-table-wrap">
+          <table>
+            <thead><tr><th>Diff</th><th>Question</th><th>Ans</th><th style="width:90px;">Actions</th></tr></thead>
+            <tbody>
+              <% questions.forEach(q => { %>
+              <tr class="q-row" data-diff="<%= q.difficulty %>">
+                <td><span class="diff-<%= q.difficulty %>" style="font-family:'Cinzel',serif;font-size:0.72rem;text-transform:uppercase;"><%= q.difficulty %></span></td>
+                <td style="font-size:0.8rem;max-width:320px;white-space:pre-wrap;"><%= q.question_text %></td>
+                <td style="font-family:'Cinzel',serif;color:var(--green);text-transform:uppercase;"><%= q.correct_ans %></td>
+                <td>
+                  <div style="display:flex;gap:0.3rem;">
+                    <button class="btn-edit-sm" onclick='openEditQ(<%= JSON.stringify(q) %>)'>Edit</button>
+                    <form action="/admin/questions/delete/<%= q.id %>" method="POST">
+                      <button class="btn-danger-sm" onclick="return confirm('Delete?')">Del</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── OUTCOMES ── -->
+    <div class="inner-section" id="sec-outcomes">
+
+      <!-- Add outcome -->
+      <div class="a-card">
+        <h2>Add Card Outcome</h2>
+        <form action="/admin/outcomes/add" method="POST" class="add-form">
+          <div>
+            <label class="form-label">Type</label>
+            <select name="type" class="a-input" style="width:100%;" required>
+              <option value="trap">Trap</option>
+              <option value="windfall">Windfall</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Effect Type</label>
+            <select name="effect_type" class="a-input" style="width:100%;" required>
+              <option value="lose_hp">Lose HP</option>
+              <option value="lose_elixir">Lose Elixir</option>
+              <option value="skip_turn">Skip Turn</option>
+              <option value="move_back">Move Back</option>
+              <option value="void">Back to Space 1</option>
+              <option value="soul_drain">Soul Drain</option>
+              <option value="poison">Poison</option>
+              <option value="frost">Frost</option>
+              <option value="mirror">Mirror</option>
+              <option value="gain_elixir">Gain Elixir</option>
+              <option value="move_forward">Move Forward</option>
+              <option value="extra_turn">Extra Turn</option>
+              <option value="move_opponent_back">Move Opponent Back</option>
+              <option value="gain_xp">Gain XP</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Name</label>
+            <input type="text" name="name" class="a-input" style="width:100%;" required>
+          </div>
+          <div>
+            <label class="form-label">Effect Value</label>
+            <input type="number" name="effect_value" class="a-input" style="width:100%;" value="0" step="0.5">
+          </div>
+          <div class="full">
+            <label class="form-label">Description</label>
+            <input type="text" name="description" class="a-input" style="width:100%;" required>
+          </div>
+          <div>
+            <label class="form-label">Weight (draw chance)</label>
+            <input type="number" name="weight" class="a-input" style="width:100%;" value="10" min="1" max="100">
+          </div>
+          <div class="full"><button type="submit" class="btn btn-primary">Add Outcome</button></div>
+        </form>
+      </div>
+
+      <!-- Outcomes list -->
+      <div class="a-card">
+        <h2>All Card Outcomes</h2>
+        <div class="a-table-wrap">
+          <table>
+            <thead><tr><th>Type</th><th>Name</th><th>Description</th><th>Effect</th><th>Val</th><th>Weight</th><th style="width:90px;">Actions</th></tr></thead>
+            <tbody>
+              <% outcomes.forEach(o => { %>
+              <tr>
+                <td><span class="type-<%= o.type %>" style="font-family:'Cinzel',serif;font-size:0.72rem;text-transform:uppercase;"><%= o.type %></span></td>
+                <td style="font-family:'Cinzel',serif;font-size:0.8rem;"><%= o.name %></td>
+                <td style="font-size:0.78rem;color:var(--text-muted);max-width:200px;"><%= o.description %></td>
+                <td style="font-size:0.75rem;color:var(--text-muted);"><%= o.effect_type %></td>
+                <td style="color:var(--gold);"><%= o.effect_value %></td>
+                <td style="color:var(--text-muted);"><%= o.weight %></td>
+                <td>
+                  <div style="display:flex;gap:0.3rem;">
+                    <button class="btn-edit-sm" onclick='openEditO(<%= JSON.stringify(o) %>)'>Edit</button>
+                    <form action="/admin/outcomes/delete/<%= o.id %>" method="POST">
+                      <button class="btn-danger-sm" onclick="return confirm('Delete?')">Del</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Edit Question Modal -->
+<div class="modal-overlay" id="modal-q">
+  <div class="modal-box">
+    <span class="modal-close" onclick="document.getElementById('modal-q').classList.remove('open')">✕</span>
+    <h3>Edit Question</h3>
+    <form id="form-eq" method="POST" class="add-form">
+      <div>
+        <label class="form-label">Difficulty</label>
+        <select name="difficulty" id="eq-diff" class="a-input" style="width:100%;">
+          <option value="common">Common</option><option value="rare">Rare</option><option value="legendary">Legendary</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Correct Answer</label>
+        <select name="correct_ans" id="eq-ans" class="a-input" style="width:100%;">
+          <option value="a">A</option><option value="b">B</option><option value="c">C</option><option value="d">D</option>
+        </select>
+      </div>
+      <div class="full"><label class="form-label">Question</label><textarea name="question_text" id="eq-qt" class="a-input" style="width:100%;" required></textarea></div>
+      <div><label class="form-label">Option A</label><input type="text" name="option_a" id="eq-oa" class="a-input" style="width:100%;"></div>
+      <div><label class="form-label">Option B</label><input type="text" name="option_b" id="eq-ob" class="a-input" style="width:100%;"></div>
+      <div><label class="form-label">Option C</label><input type="text" name="option_c" id="eq-oc" class="a-input" style="width:100%;"></div>
+      <div><label class="form-label">Option D</label><input type="text" name="option_d" id="eq-od" class="a-input" style="width:100%;"></div>
+      <div class="full"><label class="form-label">Explanation</label><input type="text" name="explanation" id="eq-expl" class="a-input" style="width:100%;"></div>
+      <div class="full" style="display:flex;gap:0.5rem;">
+        <button type="submit" class="btn btn-primary">Save</button>
+        <button type="button" class="btn btn-outline" onclick="document.getElementById('modal-q').classList.remove('open')">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Outcome Modal -->
+<div class="modal-overlay" id="modal-o">
+  <div class="modal-box">
+    <span class="modal-close" onclick="document.getElementById('modal-o').classList.remove('open')">✕</span>
+    <h3>Edit Outcome</h3>
+    <form id="form-eo" method="POST" class="add-form">
+      <div>
+        <label class="form-label">Type</label>
+        <select name="type" id="eo-type" class="a-input" style="width:100%;">
+          <option value="trap">Trap</option><option value="windfall">Windfall</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Effect Type</label>
+        <select name="effect_type" id="eo-et" class="a-input" style="width:100%;">
+          <option value="lose_hp">Lose HP</option><option value="lose_elixir">Lose Elixir</option>
+          <option value="skip_turn">Skip Turn</option><option value="move_back">Move Back</option>
+          <option value="void">Back to Space 1</option><option value="soul_drain">Soul Drain</option>
+          <option value="poison">Poison</option><option value="frost">Frost</option>
+          <option value="mirror">Mirror</option><option value="gain_elixir">Gain Elixir</option>
+          <option value="move_forward">Move Forward</option><option value="extra_turn">Extra Turn</option>
+          <option value="move_opponent_back">Move Opponent Back</option><option value="gain_xp">Gain XP</option>
+        </select>
+      </div>
+      <div><label class="form-label">Name</label><input type="text" name="name" id="eo-name" class="a-input" style="width:100%;"></div>
+      <div><label class="form-label">Effect Value</label><input type="number" name="effect_value" id="eo-ev" class="a-input" style="width:100%;" step="0.5"></div>
+      <div class="full"><label class="form-label">Description</label><input type="text" name="description" id="eo-desc" class="a-input" style="width:100%;"></div>
+      <div><label class="form-label">Weight</label><input type="number" name="weight" id="eo-w" class="a-input" style="width:100%;"></div>
+      <div class="full" style="display:flex;gap:0.5rem;">
+        <button type="submit" class="btn btn-primary">Save</button>
+        <button type="button" class="btn btn-outline" onclick="document.getElementById('modal-o').classList.remove('open')">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function showSection(id, btn) {
+    document.querySelectorAll('.inner-tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.inner-section').forEach(s => s.classList.remove('show'));
+    btn.classList.add('active');
+    document.getElementById('sec-' + id).classList.add('show');
+  }
+  function filterQ(diff, btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.q-row').forEach(r => {
+      r.style.display = (diff === 'all' || r.dataset.diff === diff) ? '' : 'none';
+    });
+  }
+  function openEditQ(q) {
+    document.getElementById('form-eq').action = '/admin/questions/edit/' + q.id;
+    document.getElementById('eq-diff').value  = q.difficulty;
+    document.getElementById('eq-ans').value   = q.correct_ans;
+    document.getElementById('eq-qt').value    = q.question_text;
+    document.getElementById('eq-oa').value    = q.option_a;
+    document.getElementById('eq-ob').value    = q.option_b;
+    document.getElementById('eq-oc').value    = q.option_c;
+    document.getElementById('eq-od').value    = q.option_d;
+    document.getElementById('eq-expl').value  = q.explanation;
+    document.getElementById('modal-q').classList.add('open');
+  }
+  function openEditO(o) {
+    document.getElementById('form-eo').action  = '/admin/outcomes/edit/' + o.id;
+    document.getElementById('eo-type').value   = o.type;
+    document.getElementById('eo-et').value     = o.effect_type;
+    document.getElementById('eo-name').value   = o.name;
+    document.getElementById('eo-ev').value     = o.effect_value;
+    document.getElementById('eo-desc').value   = o.description;
+    document.getElementById('eo-w').value      = o.weight;
+    document.getElementById('modal-o').classList.add('open');
+  }
+</script>
+</body>
+</html>

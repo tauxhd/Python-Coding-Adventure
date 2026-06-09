@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Questions – Admin</title>
+  <link rel="stylesheet" href="/css/globals.css">
+  <style>
+    body { background: var(--bg-deep); }
+    .admin-shell { display: flex; min-height: 100vh; }
+    .admin-sidebar { width:220px; background:var(--bg-dark); border-right:1px solid var(--border); padding:1.5rem 0; flex-shrink:0; position:sticky; top:0; height:100vh; overflow-y:auto; }
+    .sidebar-logo { padding:0 1.2rem 1.2rem; border-bottom:1px solid var(--border); margin-bottom:1rem; }
+    .sidebar-logo img { width:100%; max-width:160px; }
+    .sidebar-label { font-family:'Cinzel',serif; font-size:0.65rem; letter-spacing:0.15em; color:var(--text-muted); text-transform:uppercase; padding:0 1.2rem; margin-bottom:0.4rem; }
+    .sidebar-nav { list-style:none; margin-bottom:1.2rem; }
+    .sidebar-nav a { display:flex; align-items:center; gap:0.6rem; padding:0.6rem 1.2rem; font-family:'Cinzel',serif; font-size:0.82rem; color:var(--text-muted); transition:background 0.15s,color 0.15s; }
+    .sidebar-nav a:hover { background:var(--bg-hover); color:var(--text-main); }
+    .sidebar-nav a.active { background:rgba(91,63,168,0.2); color:var(--gold); border-left:3px solid var(--gold); }
+    .admin-main { flex:1; padding:2rem; overflow-x:hidden; }
+    .admin-header { margin-bottom:2rem; }
+    .admin-header h1 { font-size:1.5rem; color:var(--gold); margin-bottom:0.2rem; }
+    .admin-header p { color:var(--text-muted); font-size:0.9rem; }
+    .a-card { background:var(--bg-card); border:1px solid var(--border); border-radius:14px; padding:1.4rem; margin-bottom:1.5rem; }
+    .a-card h2 { font-size:0.8rem; color:var(--text-muted); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:1rem; }
+    .a-table-wrap { border-radius:10px; overflow:hidden; border:1px solid var(--border); }
+    table { width:100%; border-collapse:collapse; }
+    thead tr { background:var(--bg-deep); }
+    th { font-family:'Cinzel',serif; font-size:0.7rem; letter-spacing:0.1em; color:var(--text-muted); text-transform:uppercase; padding:0.7rem 0.9rem; text-align:left; }
+    td { padding:0.7rem 0.9rem; font-size:0.85rem; border-top:1px solid rgba(255,255,255,0.04); vertical-align:middle; }
+    tbody tr:hover { background:var(--bg-hover); }
+    .a-input { background:var(--bg-deep); border:1px solid var(--border); border-radius:8px; color:var(--text-main); padding:0.45rem 0.8rem; font-family:'Crimson Text',serif; font-size:0.9rem; outline:none; }
+    .a-input:focus { border-color:var(--border-glow); }
+    select.a-input option { background:var(--bg-deep); }
+    .btn-danger-sm { background:rgba(255,77,106,0.2); border:1px solid var(--red); color:var(--red); border-radius:6px; cursor:pointer; padding:0.3rem 0.7rem; font-family:'Cinzel',serif; font-size:0.72rem; transition:background 0.15s; }
+    .btn-danger-sm:hover { background:rgba(255,77,106,0.35); }
+    .diff-common { color:#aaa; } .diff-rare { color:var(--p1-color); } .diff-legendary { color:var(--gold); }
+    .add-form { display:grid; grid-template-columns:1fr 1fr; gap:0.8rem; }
+    .add-form .full { grid-column:1/-1; }
+    .form-label { font-family:'Cinzel',serif; font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:0.3rem; letter-spacing:0.08em; }
+    textarea.a-input { resize:vertical; min-height:60px; }
+    .filter-row { display:flex; gap:0.6rem; margin-bottom:1rem; flex-wrap:wrap; }
+    .filter-btn { padding:0.35rem 0.9rem; border-radius:20px; border:1px solid var(--border); background:var(--bg-deep); color:var(--text-muted); font-family:'Cinzel',serif; font-size:0.75rem; cursor:pointer; transition:all 0.15s; }
+    .filter-btn.active, .filter-btn:hover { border-color:var(--border-glow); color:var(--text-main); background:var(--bg-hover); }
+  </style>
+</head>
+<body>
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <div class="sidebar-logo"><img src="/images/logo.png" alt="PAQ Admin"></div>
+    <div class="sidebar-label">MC Dashboard</div>
+    <ul class="sidebar-nav">
+      <li><a href="/admin">📊 Overview</a></li>
+      <li><a href="/admin/questions" class="active">📜 Questions</a></li>
+      <li><a href="/admin/players">👥 Players</a></li>
+    </ul>
+    <div class="sidebar-label">Navigation</div>
+    <ul class="sidebar-nav">
+      <li><a href="/game/lobby">⚔️ Game Lobby</a></li>
+      <li><a href="/leaderboard">🏆 Leaderboard</a></li>
+      <li><a href="/logout">🚪 Logout</a></li>
+    </ul>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-header">
+      <h1>Question Bank</h1>
+      <p><%= questions.length %> questions across Common, Rare and Legendary difficulty</p>
+    </div>
+
+    <% if (error) { %><div class="alert alert-error" style="margin-bottom:1rem;"><%= error %></div><% } %>
+    <% if (success) { %><div class="alert alert-success" style="margin-bottom:1rem;"><%= success %></div><% } %>
+
+    <!-- Add question -->
+    <div class="a-card">
+      <h2>Add New Question</h2>
+      <form action="/admin/questions/add" method="POST" class="add-form">
+        <div class="full">
+          <label class="form-label">Difficulty</label>
+          <select name="difficulty" class="a-input" required>
+            <option value="common">Common</option>
+            <option value="rare">Rare</option>
+            <option value="legendary">Legendary</option>
+          </select>
+        </div>
+        <div class="full">
+          <label class="form-label">Question</label>
+          <textarea name="question_text" class="a-input" style="width:100%;" placeholder="What does this code output?" required></textarea>
+        </div>
+        <div>
+          <label class="form-label">Option A</label>
+          <input type="text" name="option_a" class="a-input" style="width:100%;" required>
+        </div>
+        <div>
+          <label class="form-label">Option B</label>
+          <input type="text" name="option_b" class="a-input" style="width:100%;" required>
+        </div>
+        <div>
+          <label class="form-label">Option C</label>
+          <input type="text" name="option_c" class="a-input" style="width:100%;" required>
+        </div>
+        <div>
+          <label class="form-label">Option D</label>
+          <input type="text" name="option_d" class="a-input" style="width:100%;" required>
+        </div>
+        <div>
+          <label class="form-label">Correct Answer</label>
+          <select name="correct_ans" class="a-input" required>
+            <option value="a">A</option><option value="b">B</option>
+            <option value="c">C</option><option value="d">D</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Explanation</label>
+          <input type="text" name="explanation" class="a-input" style="width:100%;" placeholder="Why is this the correct answer?" required>
+        </div>
+        <div class="full" style="margin-top:0.5rem;">
+          <button type="submit" class="btn btn-primary">Add Question</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Question list -->
+    <div class="a-card">
+      <h2>All Questions</h2>
+      <div class="filter-row">
+        <button class="filter-btn active" onclick="filterQ('all',this)">All (<%= questions.length %>)</button>
+        <button class="filter-btn" onclick="filterQ('common',this)">Common (<%= questions.filter(q=>q.difficulty==='common').length %>)</button>
+        <button class="filter-btn" onclick="filterQ('rare',this)">Rare (<%= questions.filter(q=>q.difficulty==='rare').length %>)</button>
+        <button class="filter-btn" onclick="filterQ('legendary',this)">Legendary (<%= questions.filter(q=>q.difficulty==='legendary').length %>)</button>
+      </div>
+      <div class="a-table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Diff</th><th style="width:35%">Question</th><th>Options</th><th>Answer</th><th>Actions</th></tr></thead>
+          <tbody>
+            <% questions.forEach(q => { %>
+            <tr class="q-row" data-diff="<%= q.difficulty %>">
+              <td style="color:var(--text-muted);"><%= q.id %></td>
+              <td><span class="diff-<%= q.difficulty %>" style="font-family:'Cinzel',serif;font-size:0.75rem;text-transform:uppercase;"><%= q.difficulty %></span></td>
+              <td style="font-size:0.82rem;max-width:260px;white-space:pre-wrap;"><%= q.question_text %></td>
+              <td style="font-size:0.78rem;color:var(--text-muted);">
+                A: <%= q.option_a %><br>
+                B: <%= q.option_b %><br>
+                C: <%= q.option_c %><br>
+                D: <%= q.option_d %>
+              </td>
+              <td style="font-family:'Cinzel',serif;color:var(--green);text-transform:uppercase;"><%= q.correct_ans %></td>
+              <td>
+                <div style="display:flex;gap:0.4rem;">
+                  <button class="btn btn-outline" style="padding:0.3rem 0.7rem;font-size:0.72rem;" onclick="openEdit(<%= JSON.stringify(q) %>)">Edit</button>
+                  <form action="/admin/questions/delete/<%= q.id %>" method="POST" style="display:inline">
+                    <button class="btn-danger-sm" onclick="return confirm('Delete this question?')">Del</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Edit modal -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal-box">
+    <span class="modal-close" onclick="closeEdit()">✕</span>
+    <h3>Edit Question</h3>
+    <form id="edit-form" method="POST" class="add-form">
+      <input type="hidden" name="_method" value="PUT">
+      <div class="full">
+        <label class="form-label">Difficulty</label>
+        <select name="difficulty" id="e-diff" class="a-input" required>
+          <option value="common">Common</option><option value="rare">Rare</option><option value="legendary">Legendary</option>
+        </select>
+      </div>
+      <div class="full">
+        <label class="form-label">Question</label>
+        <textarea name="question_text" id="e-qtext" class="a-input" style="width:100%;" required></textarea>
+      </div>
+      <div><label class="form-label">Option A</label><input type="text" name="option_a" id="e-oa" class="a-input" style="width:100%;" required></div>
+      <div><label class="form-label">Option B</label><input type="text" name="option_b" id="e-ob" class="a-input" style="width:100%;" required></div>
+      <div><label class="form-label">Option C</label><input type="text" name="option_c" id="e-oc" class="a-input" style="width:100%;" required></div>
+      <div><label class="form-label">Option D</label><input type="text" name="option_d" id="e-od" class="a-input" style="width:100%;" required></div>
+      <div>
+        <label class="form-label">Correct Answer</label>
+        <select name="correct_ans" id="e-ans" class="a-input" required>
+          <option value="a">A</option><option value="b">B</option><option value="c">C</option><option value="d">D</option>
+        </select>
+      </div>
+      <div><label class="form-label">Explanation</label><input type="text" name="explanation" id="e-expl" class="a-input" style="width:100%;" required></div>
+      <div class="full" style="margin-top:0.5rem;display:flex;gap:0.5rem;">
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <button type="button" class="btn btn-outline" onclick="closeEdit()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function filterQ(diff, btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.q-row').forEach(row => {
+      row.style.display = (diff === 'all' || row.dataset.diff === diff) ? '' : 'none';
+    });
+  }
+  function openEdit(q) {
+    document.getElementById('edit-form').action = '/admin/questions/edit/' + q.id;
+    document.getElementById('e-diff').value   = q.difficulty;
+    document.getElementById('e-qtext').value  = q.question_text;
+    document.getElementById('e-oa').value     = q.option_a;
+    document.getElementById('e-ob').value     = q.option_b;
+    document.getElementById('e-oc').value     = q.option_c;
+    document.getElementById('e-od').value     = q.option_d;
+    document.getElementById('e-ans').value    = q.correct_ans;
+    document.getElementById('e-expl').value   = q.explanation;
+    document.getElementById('edit-modal').classList.add('open');
+  }
+  function closeEdit() { document.getElementById('edit-modal').classList.remove('open'); }
+</script>
+</body>
+</html>
