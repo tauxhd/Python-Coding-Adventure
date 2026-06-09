@@ -766,7 +766,16 @@ a:hover { color: var(--gold); }
   h2 { font-size: 1.3rem; }
 }
 
-/* Hamburger toggle button */
+/* Right-side control group (Play + Bag + nav links + hamburger) */
+.nav-right-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: auto;
+  position: relative; /* dropdown anchors here */
+}
+
+/* Hamburger toggle button — mobile only */
 .nav-hamburger {
   display: none;
   background: none;
@@ -783,17 +792,30 @@ a:hover { color: var(--gold); }
 .nav-hamburger:hover { background: var(--bg-hover); }
 
 @media (max-width: 768px) {
+  /* Hide logo on mobile */
+  .navbar-brand { display: none; }
+
+  /* Restore XP bar on mobile */
+  .xp-progress-hud { display: flex !important; }
+
+  /* Shrink XP bar a bit so it fits */
+  .xp-bar-small { width: 55px; }
+
+  /* Condense hud-stats on mobile */
+  .hud-stats { gap: 0.4rem; padding: 0.35rem 0.6rem; flex-wrap: nowrap; }
+  .rank-hud-section { display: none; } /* hide rank badge+name, keep xp+elixir */
+
   .nav-hamburger { display: block; }
 
+  /* Dropdown: nav links panel */
   .navbar-links {
     display: none;
     position: absolute;
-    top: 100%;
+    top: calc(100% + 0.4rem);
     right: 0;
     background: linear-gradient(180deg, rgba(20,15,35,0.98), rgba(15,10,30,0.99));
     border: 1px solid var(--border);
-    border-top: none;
-    border-radius: 0 0 12px 12px;
+    border-radius: 12px;
     padding: 0.5rem 0.4rem;
     flex-direction: column;
     gap: 0.2rem;
@@ -802,9 +824,11 @@ a:hover { color: var(--gold); }
     z-index: 99;
   }
   .navbar-links.open { display: flex; }
-  .navbar { position: relative; }
 
   .nav-link { width: 100%; border-radius: 8px; }
+
+  /* Keep Play button compact on mobile (it's always visible) */
+  .nav-right-controls .nav-play { padding: 0.45rem 0.7rem; font-size: 0.72rem; }
 }
 
 @media (max-width: 480px) {
@@ -812,9 +836,11 @@ a:hover { color: var(--gold); }
   .page { padding: 1rem 0.75rem; }
 
   .navbar { padding: 0.5rem 0.75rem; }
-  .navbar-brand img { height: 28px !important; }
 
-  .hud-stats { gap: 0.4rem; padding: 0.35rem 0.6rem; }
+  .hud-stats { gap: 0.3rem; padding: 0.3rem 0.5rem; }
+  .xp-bar-small { width: 44px; }
+  .xp-text { font-size: 0.68rem; min-width: 24px; }
+  .elixir-val { font-size: 0.78rem; }
 
   .card { padding: 1rem; border-radius: 10px; }
   .btn { padding: 0.55rem 1rem; font-size: 0.82rem; }
