@@ -62,7 +62,9 @@
     </div>
   <% } %>
 
-  <div class="navbar-links">
+  <button class="nav-hamburger" id="navHamburger" aria-label="Toggle menu">☰</button>
+
+  <div class="navbar-links" id="navLinks">
     <% if (user) { %>
       <% if (user.is_admin) { %>
         <a href="/admin/cards" class="nav-link">
@@ -171,6 +173,23 @@
     </div>
   </div>
 </div>
+
+<script>
+  (function() {
+    const hamburger = document.getElementById('navHamburger');
+    const navLinks  = document.getElementById('navLinks');
+    if (!hamburger || !navLinks) return;
+    hamburger.addEventListener('click', function(e) {
+      e.stopPropagation();
+      navLinks.classList.toggle('open');
+    });
+    document.addEventListener('click', function(e) {
+      if (!navLinks.contains(e.target) && e.target !== hamburger) {
+        navLinks.classList.remove('open');
+      }
+    });
+  })();
+</script>
 
 <script>
   let currentElixirAmount = 0;
