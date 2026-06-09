@@ -827,7 +827,7 @@ a:hover { color: var(--gold); }
     background: linear-gradient(135deg, #3a1e8a, #7b3fff);
     border: 1px solid rgba(240,192,64,0.35);
     border-radius: 10px;
-    color: var(--gold);
+    color: #fff;
     font-family: 'Cinzel', serif;
     font-size: 1rem;
     font-weight: 700;
@@ -840,7 +840,7 @@ a:hover { color: var(--gold); }
   .mobile-play-btn:hover {
     box-shadow: 0 0 32px rgba(123,63,255,0.65);
     transform: translateY(-1px);
-    color: var(--gold);
+    color: #fff;
   }
 
   /* Dropdown: nav links panel */
