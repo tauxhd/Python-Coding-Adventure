@@ -508,6 +508,56 @@
       color: var(--text-muted);
       font-size: 0.9rem;
     }
+
+    /* ── RESPONSIVE ─────────────────────────────── */
+    @media (max-width: 640px) {
+      .lb-wrap { padding: 1.5rem 0.75rem 3rem; }
+      .lb-header h1 { font-size: 1.5rem; }
+      .lb-header p  { font-size: 0.85rem; }
+
+      /* Hide Games and Correct columns */
+      th:nth-child(6), td:nth-child(6),
+      th:nth-child(7), td:nth-child(7) { display: none; }
+
+      /* Shrink podium */
+      .podium-slots { gap: 0.6rem; }
+      .podium { padding: 1.2rem 0.5rem 0; margin-bottom: 2rem; }
+      .podium-slot.first  .podium-avatar { width: 58px; height: 58px; font-size: 1.3rem; }
+      .podium-slot.second .podium-avatar { width: 46px; height: 46px; font-size: 1.1rem; }
+      .podium-slot.third  .podium-avatar { width: 40px; height: 40px; font-size: 0.95rem; }
+      .podium-slot.first  .podium-block  { height: 100px; min-width: 120px; }
+      .podium-slot.second .podium-block  { height: 75px;  min-width: 105px; }
+      .podium-slot.third  .podium-block  { height: 55px;  min-width: 90px; }
+      .podium-slot.first  .podium-step-label { font-size: 1.6rem; }
+      .podium-slot.second .podium-step-label { font-size: 1.3rem; }
+      .podium-slot.third  .podium-step-label { font-size: 1.1rem; }
+      .podium-name { font-size: 0.78rem; }
+      .podium-xp   { font-size: 0.68rem; }
+      .podium-badge-img { height: 70px !important; }
+      .podium-slot.second .podium-badge-img { height: 54px !important; }
+      .podium-slot.third  .podium-badge-img { height: 44px !important; }
+
+      td { padding: 0.5rem 0.5rem; font-size: 0.82rem; }
+      th { padding: 0.5rem 0.5rem; font-size: 0.64rem; }
+    }
+
+    @media (max-width: 480px) {
+      /* Also hide Rank column — position already implies it */
+      th:nth-child(3), td:nth-child(3) { display: none; }
+
+      /* Tighten avatar + name */
+      .avatar-sm { width: 22px; height: 22px; font-size: 0.62rem; }
+      .player-cell { gap: 0.4rem; }
+      .player-name { font-size: 0.75rem; }
+      .me-tag { font-size: 0.6rem; }
+      .pos-num { font-size: 0.82rem; }
+
+      /* Tier banners */
+      .tier-banner { font-size: 0.62rem; letter-spacing: 0.1em; padding: 0.5rem 0.6rem; }
+
+      /* Rank badge images in # column */
+      td:nth-child(1) img { height: 28px !important; }
+    }
   </style>
 </head>
 <body>
