@@ -341,42 +341,141 @@
 /* ── RESPONSIVE ─────────────────────────────────── */
 
 @media (max-width: 768px) {
-  .hud { flex-direction: column; gap: 0.6rem; padding: 0.75rem 1rem; }
-  .hud-player.right { text-align: left; }
-  .hud-center { width: 100%; display: flex; align-items: center; justify-content: space-between; }
+  /* ── HUD: side-by-side VS card ── */
+  .hud {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: stretch;
+    padding: 0;
+    gap: 0;
+    background: linear-gradient(180deg, rgba(10,7,20,0.99), rgba(15,10,30,0.97));
+    border-bottom: 1px solid rgba(240,192,64,0.15);
+  }
 
-  .board-wrap { padding: 0.75rem 0.5rem; }
+  /* Player panels take equal halves */
+  .hud-player        { order: 1; flex: 1; min-width: 0; padding: 0.65rem 0.75rem; }
+  .hud-player.right  { order: 2; text-align: right; border-left: 1px solid var(--border); }
+
+  /* Colored accent stripe on the outer edge */
+  .hud-player:not(.right) {
+    border-left: 3px solid var(--p1-color);
+    background: linear-gradient(135deg, rgba(74,179,255,0.07) 0%, transparent 70%);
+  }
+  .hud-player.right {
+    border-right: 3px solid var(--p2-color);
+    background: linear-gradient(225deg, rgba(176,77,255,0.09) 0%, transparent 70%);
+  }
+
+  /* Center strip: full-width row below */
+  .hud-center {
+    order: 3;
+    flex-basis: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 0.38rem 0.75rem;
+    background: rgba(0,0,0,0.25);
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  /* Player names */
+  .hud-name {
+    font-size: 0.8rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 0.3rem;
+    letter-spacing: 0.04em;
+  }
+
+  /* HP bars — thicker, inner gradient, glow on wrap */
+  .hp-bar-wrap {
+    height: 12px;
+    border-radius: 6px;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.07);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.6);
+    margin: 0 0 0.3rem;
+    overflow: hidden;
+    position: relative;
+  }
+  .hp-bar-fill {
+    border-radius: 6px;
+    position: relative;
+  }
+  /* Shine overlay on HP fill */
+  .hp-bar-fill::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.22) 0%, transparent 55%);
+    border-radius: 6px;
+    pointer-events: none;
+  }
+
+  /* P1 bar glow (left player) */
+  .hud-player:not(.right) .hp-bar-wrap {
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.6), 0 0 8px rgba(74,179,255,0.25);
+    border-color: rgba(74,179,255,0.2);
+  }
+  /* P2 bar glow (right player) */
+  .hud-player.right .hp-bar-wrap {
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.6), 0 0 8px rgba(176,77,255,0.25);
+    border-color: rgba(176,77,255,0.2);
+  }
+
+  /* HP / position text */
+  .hp-text  { font-size: 0.68rem; }
+  .pos-text { font-size: 0.62rem; margin-top: 0.1rem; }
+
+  /* Center strip elements */
+  .room-pill {
+    font-size: 0.58rem;
+    padding: 0.12rem 0.45rem;
+    border-radius: 4px;
+    background: rgba(240,192,64,0.07);
+    border: 1px solid rgba(240,192,64,0.18);
+  }
+  .turn-indicator { font-size: 0.75rem; padding: 0.22rem 0.8rem; }
+  .exit-game-btn  { margin-top: 0; font-size: 0.58rem; padding: 0.2rem 0.55rem; }
+
+  /* Board */
+  .board-wrap  { padding: 0.75rem 0.5rem; }
   .board-track { min-width: 480px; gap: 4px; }
 
   .action-panel { padding: 1rem 0.75rem; }
+  .items-bar    { padding: 0.6rem 1rem; }
 
-  .items-bar { padding: 0.6rem 1rem; }
-
-  .event-log { width: 180px; max-height: 140px; bottom: 0.5rem; right: 0.5rem; }
-  .log-title { font-size: 0.7rem; padding: 0.4rem 0.6rem; }
-  .log-entry { font-size: 0.73rem; }
+  .event-log  { width: 180px; max-height: 140px; bottom: 0.5rem; right: 0.5rem; }
+  .log-title  { font-size: 0.7rem; padding: 0.4rem 0.6rem; }
+  .log-entry  { font-size: 0.73rem; }
 }
 
 @media (max-width: 480px) {
-  .hud { padding: 0.6rem 0.75rem; }
-  .hud-name { font-size: 0.88rem; }
+  .hud-player        { padding: 0.55rem 0.6rem; }
+  .hud-name          { font-size: 0.75rem; }
+  .hp-bar-wrap       { height: 10px; }
+  .hp-text           { font-size: 0.62rem; }
+  .pos-text          { font-size: 0.58rem; }
 
-  .board-wrap { padding: 0.5rem; }
+  .board-wrap  { padding: 0.5rem; }
   .board-track { min-width: 360px; gap: 3px; }
-  .space { border-radius: 5px; font-size: 0.58rem; padding: 1px; }
-  .space-num { font-size: 0.52rem; }
-  .space-icon { font-size: 0.8rem; }
-  .token { width: 8px; height: 8px; }
+  .space       { border-radius: 5px; font-size: 0.58rem; padding: 1px; }
+  .space-num   { font-size: 0.52rem; }
+  .space-icon  { font-size: 0.8rem; }
+  .token       { width: 8px; height: 8px; }
 
-  .action-panel { padding: 0.75rem 0.6rem; max-width: 100%; }
-  .dice-display { font-size: 2.5rem; }
+  .action-panel  { padding: 0.75rem 0.6rem; max-width: 100%; }
+  .dice-display  { font-size: 2.5rem; }
 
-  .gameover-box { padding: 1.25rem; }
+  .gameover-box    { padding: 1.25rem; }
   .gameover-box h2 { font-size: 1.4rem; }
 
-  .event-log { display: none; }
-
-  .items-bar { padding: 0.5rem 0.75rem; }
-  .item-btn { padding: 0.4rem 0.7rem; }
+  .event-log  { display: none; }
+  .items-bar  { padding: 0.5rem 0.75rem; }
+  .item-btn   { padding: 0.4rem 0.7rem; }
   .item-label { font-size: 0.68rem; }
 }
