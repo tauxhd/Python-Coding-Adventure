@@ -3,12 +3,26 @@ socket.emit('join-room', { roomCode: ROOM_CODE });
 
 let currentQuestionId = null;
 let currentDifficulty = null;
+let physicalDice = localStorage.getItem('paq_physical_dice') === 'true';
 let isMyTurn = () => currentTurnId === CURRENT_USER_ID;
 
 // ── Phase management ─────────────────────────────
 function showPhase(id) {
   document.querySelectorAll('.action-phase').forEach(el => el.classList.add('hidden'));
   document.getElementById('phase-' + id).classList.remove('hidden');
+}
+
+function updateDicePhaseUI() {
+  const digital = document.getElementById('digital-dice-controls');
+  const physical = document.getElementById('physical-dice-controls');
+  if (!digital || !physical) return;
+  if (physicalDice) {
+    digital.classList.add('hidden');
+    physical.classList.remove('hidden');
+  } else {
+    digital.classList.remove('hidden');
+    physical.classList.add('hidden');
+  }
 }
 
 function updateTurnUI() {
@@ -18,12 +32,28 @@ function updateTurnUI() {
     ind.style.color = 'var(--gold)';
     showPhase('roll');
     document.getElementById('btn-roll').disabled = false;
+    const confirmBtn = document.getElementById('btn-confirm-roll');
+    if (confirmBtn) confirmBtn.disabled = false;
   } else {
     ind.textContent = "⏳ Opponent's Turn";
     ind.style.color = 'var(--text-muted)';
     showPhase('waiting');
   }
+  updateDicePhaseUI();
   updateItemsTurnHint();
+}
+
+function setDicePreference(usePhysical) {
+  physicalDice = usePhysical;
+  localStorage.setItem('paq_physical_dice', usePhysical);
+  document.getElementById('dice-pref-modal').classList.add('hidden');
+  if (AUTO_SCAN && isMyTurn()) {
+    updateDicePhaseUI();
+    showPhase('scan');
+    setTimeout(() => scanCard(), 800);
+  } else {
+    updateTurnUI();
+  }
 }
 
 // ── Board token update ───────────────────────────
@@ -104,6 +134,20 @@ function rollDice() {
     if (++i > 10) { clearInterval(spin); diceEl.classList.remove('rolling'); }
   }, 60);
   socket.emit('roll-dice', { roomCode: ROOM_CODE });
+}
+
+// ── Physical dice confirm ────────────────────────
+function confirmPhysicalRoll() {
+  const input = document.getElementById('physical-roll-input');
+  const val = parseInt(input.value);
+  if (!val || val < 1 || val > 6) {
+    flashMessage('⚠️ Enter a number between 1 and 6');
+    return;
+  }
+  document.getElementById('btn-confirm-roll').disabled = true;
+  const faces = ['','⚀','⚁','⚂','⚃','⚄','⚅'];
+  document.getElementById('dice-display').textContent = faces[val];
+  socket.emit('roll-dice', { roomCode: ROOM_CODE, forcedRoll: val });
 }
 
 // ── Scan card ────────────────────────────────────
@@ -367,6 +411,9 @@ socket.on('extra-turn-granted', ({ userId }) => {
     addLog(`${MY_NAME} is taking an extra turn!`, true);
     showPhase('roll');
     document.getElementById('btn-roll').disabled = false;
+    const confirmBtn = document.getElementById('btn-confirm-roll');
+    if (confirmBtn) confirmBtn.disabled = false;
+    updateDicePhaseUI();
     document.getElementById('roll-msg').textContent = '⏳ Extra turn — second roll!';
   } else {
     addLog(`${OPP_NAME} is taking their extra turn!`, true);
@@ -379,6 +426,9 @@ socket.on('prompt-reroll', ({ userId, username }) => {
   if (userId === CURRENT_USER_ID) {
     showPhase('roll');
     document.getElementById('btn-roll').disabled = false;
+    const confirmBtn = document.getElementById('btn-confirm-roll');
+    if (confirmBtn) confirmBtn.disabled = false;
+    updateDicePhaseUI();
     document.getElementById('roll-msg').textContent = '🎲 Lucky Reroll — roll again!';
     addLog(`${MY_NAME} used Lucky Reroll — roll again!`, true);
   } else {
@@ -409,7 +459,8 @@ socket.on('time-warp-used', ({ message }) => {
 });
 
 // ── Init ─────────────────────────────────────────
-updateTurnUI();
 updateBoard(myPos, oppPos);
 renderItems(MY_ITEMS);
 addLog('Game started! ' + (IS_P1 ? MY_NAME : OPP_NAME) + ' goes first.');
+// Show dice preference modal — turn UI initialises after the player makes their choice
+document.getElementById('dice-pref-modal').classList.remove('hidden');

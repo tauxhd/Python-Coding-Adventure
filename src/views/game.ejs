@@ -29,6 +29,7 @@
   const MY_NAME      = '<%= myName %>';
   const OPP_NAME     = '<%= oppName %>';
   const IS_P1        = <%= isP1 %>;
+  const AUTO_SCAN    = <%= autoscan %>;
   let currentTurnId  = <%= game.current_turn_id %>;
   let myHp           = <%= me ? me.hp : 5 %>;
   let oppHp          = <%= opp ? opp.hp : 5 %>;
@@ -96,7 +97,19 @@
   <!-- ROLL phase -->
   <div class="action-phase" id="phase-roll">
     <div class="dice-display" id="dice-display">🎲</div>
-    <button class="btn btn-primary" id="btn-roll" onclick="rollDice()">Roll Dice</button>
+    <!-- Digital dice (default) -->
+    <div id="digital-dice-controls">
+      <button class="btn btn-primary" id="btn-roll" onclick="rollDice()">Roll Dice</button>
+    </div>
+    <!-- Physical dice mode -->
+    <div id="physical-dice-controls" class="hidden">
+      <p class="action-msg" style="margin-bottom:0.5rem">Roll your physical dice, then enter the result:</p>
+      <div style="display:flex;gap:0.75rem;align-items:center;justify-content:center;flex-wrap:wrap">
+        <input type="number" id="physical-roll-input" min="1" max="6" value="1"
+               style="width:72px;padding:0.5rem;text-align:center;font-size:1.4rem;border-radius:8px;border:1px solid var(--border);background:var(--bg-deep);color:var(--text)">
+        <button class="btn btn-primary" id="btn-confirm-roll" onclick="confirmPhysicalRoll()">Confirm Roll</button>
+      </div>
+    </div>
     <p id="roll-msg" class="action-msg"></p>
   </div>
 
@@ -105,8 +118,9 @@
     <div class="scan-prompt">
       <div style="font-size:3rem">📜</div>
       <h3>You landed on a Card Space!</h3>
-      <p style="color:var(--text-muted)">Draw from the card pile</p>
+      <p style="color:var(--text-muted)">Draw from the card pile — or scan the board QR code</p>
       <button class="btn btn-gold" onclick="scanCard()">Draw Card</button>
+      <p style="color:var(--text-muted);font-size:0.78rem;margin-top:0.75rem">📱 Scan the QR code on the physical board to auto-draw</p>
     </div>
   </div>
 
@@ -200,6 +214,43 @@
   <div class="log-title">Battle Log</div>
   <div class="log-entries" id="log-entries"></div>
 </div>
+
+<!-- Dice preference modal -->
+<div class="dice-pref-overlay hidden" id="dice-pref-modal">
+  <div class="dice-pref-card">
+    <div style="font-size:2.5rem;margin-bottom:0.5rem">🎲</div>
+    <h2 style="font-family:'Cinzel',serif;color:var(--gold);margin-bottom:0.5rem">Dice Mode</h2>
+    <p style="color:var(--text-muted);margin-bottom:1.5rem">Do you want to use a physical dice or roll digitally?</p>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-gold" onclick="setDicePreference(true)">🎲 Physical Dice</button>
+      <button class="btn btn-primary" onclick="setDicePreference(false)">💻 Digital Roll</button>
+    </div>
+    <p style="font-size:0.78rem;color:var(--text-muted);margin-top:1rem">Physical: you'll enter your roll number each turn</p>
+  </div>
+</div>
+
+<style>
+.dice-pref-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.dice-pref-overlay.hidden { display: none; }
+.dice-pref-card {
+  background: var(--bg-card);
+  border: 1px solid var(--gold);
+  border-radius: 16px;
+  padding: 2rem 2.5rem;
+  text-align: center;
+  max-width: 380px;
+  width: 90%;
+  box-shadow: 0 0 50px rgba(240,192,64,0.25);
+}
+</style>
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="/js/game.js"></script>

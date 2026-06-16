@@ -148,7 +148,7 @@ function initGameSocket(io) {
     });
 
     // ── ROLL DICE ──────────────────────────────────────────
-    socket.on('roll-dice', async ({ roomCode }) => {
+    socket.on('roll-dice', async ({ roomCode, forcedRoll }) => {
       try {
         const { game } = await getGameState(roomCode);
         if (!game || game.current_turn_id !== socket.request.session?.user?.id) return;
@@ -176,9 +176,12 @@ function initGameSocket(io) {
         }
 
         // Agility: roll twice and take the higher result if agility_attr > 0
+        // If player sent a forcedRoll (physical dice mode), use that value directly
         const myAgility = game.player1_id === userId ? game.p1_agility : game.p2_agility;
         let dice;
-        if (myAgility > 0) {
+        if (forcedRoll && Number.isInteger(forcedRoll) && forcedRoll >= 1 && forcedRoll <= 6) {
+          dice = forcedRoll;
+        } else if (myAgility > 0) {
           const roll1 = Math.floor(Math.random() * 6) + 1;
           const roll2 = Math.floor(Math.random() * 6) + 1;
           dice = Math.max(roll1, roll2);

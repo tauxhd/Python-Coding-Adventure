@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Board QR Code – Python Adventure Quest</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: Georgia, 'Times New Roman', serif;
+      background: #fff;
+      color: #000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2.5rem 1rem;
+      text-align: center;
+    }
+    h1 { font-size: 1.6rem; letter-spacing: 0.05em; margin-bottom: 0.3rem; }
+    .subtitle { color: #555; font-size: 0.95rem; margin-bottom: 2rem; }
+    .qr-box {
+      border: 3px solid #000;
+      border-radius: 12px;
+      padding: 1.2rem;
+      display: inline-block;
+      margin-bottom: 1.5rem;
+      background: #fff;
+    }
+    .qr-box img { display: block; width: 280px; height: 280px; }
+    .instructions {
+      max-width: 380px;
+      background: #f5f5f5;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      margin-bottom: 1.5rem;
+      text-align: left;
+      font-size: 0.9rem;
+      line-height: 1.8;
+    }
+    .instructions strong { display: block; margin-bottom: 0.3rem; font-size: 1rem; }
+    .instructions ol { padding-left: 1.2rem; }
+    .url {
+      font-family: monospace;
+      font-size: 0.78rem;
+      color: #777;
+      word-break: break-all;
+      max-width: 380px;
+      margin-bottom: 2rem;
+    }
+    .no-print-area { margin-top: 1rem; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
+    .print-btn {
+      padding: 0.75rem 2.5rem;
+      background: #111;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+    }
+    .print-btn:hover { background: #333; }
+    .back-link { color: #555; font-size: 0.85rem; text-decoration: none; }
+    .back-link:hover { text-decoration: underline; }
+    @media print {
+      .no-print-area { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <h1>🐍 Python Adventure Quest</h1>
+  <p class="subtitle">Physical Board — Card Space QR Code</p>
+
+  <div class="qr-box">
+    <img src="<%= qrDataUrl %>" alt="Board QR Code">
+  </div>
+
+  <div class="instructions">
+    <strong>How to use this QR code:</strong>
+    <ol>
+      <li>Print this page and cut out the QR code box</li>
+      <li>Stick it onto the physical game board</li>
+      <li>When a player lands on a <strong>📜 Card Space</strong>, they scan this QR with their phone</li>
+      <li>The app automatically draws a random card for them</li>
+    </ol>
+  </div>
+
+  <p class="url"><%= scanUrl %></p>
+
+  <div class="no-print-area">
+    <button class="print-btn" onclick="window.print()">🖨️ Print This Page</button>
+    <a class="back-link" href="/game/lobby">← Back to Lobby</a>
+  </div>
+</body>
+</html>

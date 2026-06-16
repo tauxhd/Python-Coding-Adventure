@@ -199,11 +199,54 @@ module.exports = function (io) {
         ORDER BY si.cooldown_turns ASC
       `, [games[0].id, req.session.user.id]);
 
-      res.render('game', { game, states, boardSpaces, myItems, roomCode, currentUserId: req.session.user.id });
+      const autoscan = req.query.autoscan === '1';
+      res.render('game', { game, states, boardSpaces, myItems, roomCode, currentUserId: req.session.user.id, autoscan });
     } catch (err) {
       console.error(err);
       res.redirect('/game/lobby?error=Something went wrong.');
     }
+  });
+
+  // Physical board QR code redirect — scanned from the printed board QR
+  router.get('/scan-qr', requireLogin, async (req, res) => {
+    const userId = req.session.user.id;
+    try {
+      const [rows] = await db.query(`
+        SELECT g.room_code, g.current_turn_id
+        FROM games g
+        JOIN game_state gs ON g.id = gs.game_id AND gs.user_id = ?
+        WHERE g.status = 'active' AND (g.player1_id = ? OR g.player2_id = ?)
+        LIMIT 1
+      `, [userId, userId, userId]);
+
+      if (!rows.length) {
+        return res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Scan Card</title><style>body{font-family:sans-serif;text-align:center;padding:2rem;background:#0a0a1a;color:#fff}h2{color:#f0c040}p{color:#aaa}</style></head><body><h2>No Active Game</h2><p>Start a game first, then scan this code when you land on a card space.</p></body></html>`);
+      }
+
+      const { room_code, current_turn_id } = rows[0];
+
+      if (current_turn_id !== userId) {
+        return res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Scan Card</title><style>body{font-family:sans-serif;text-align:center;padding:2rem;background:#0a0a1a;color:#fff}h2{color:#f0c040}p{color:#aaa}</style></head><body><h2>Not Your Turn</h2><p>Wait for your turn, then scan the board QR code when you land on a card space.</p></body></html>`);
+      }
+
+      res.redirect(`/game/play/${room_code}?autoscan=1`);
+    } catch (err) {
+      console.error(err);
+      res.redirect('/game/lobby');
+    }
+  });
+
+  // Printable board QR code page
+  router.get('/scan-qr-print', requireLogin, async (req, res) => {
+    const scanUrl = `${req.protocol}://${req.get('host')}/game/scan-qr`;
+    const qrDataUrl = await QRCode.toDataURL(scanUrl, {
+      errorCorrectionLevel: 'H',
+      type: 'image/png',
+      width: 400,
+      margin: 2,
+      color: { dark: '#000000', light: '#ffffff' }
+    });
+    res.render('scan-qr-print', { qrDataUrl, scanUrl });
   });
 
   return router;
