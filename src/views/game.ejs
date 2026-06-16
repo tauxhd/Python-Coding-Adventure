@@ -118,9 +118,11 @@
     <div class="scan-prompt">
       <div style="font-size:3rem">📜</div>
       <h3>You landed on a Card Space!</h3>
-      <p style="color:var(--text-muted)">Draw from the card pile — or scan the board QR code</p>
-      <button class="btn btn-gold" onclick="scanCard()">Draw Card</button>
-      <p style="color:var(--text-muted);font-size:0.78rem;margin-top:0.75rem">📱 Scan the QR code on the physical board to auto-draw</p>
+      <p style="color:var(--text-muted);margin-bottom:1rem">Draw from the card pile or scan the board QR</p>
+      <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-gold" onclick="scanCard()">Draw Card</button>
+        <button class="btn btn-outline" onclick="openQrScanner()">📷 Scan</button>
+      </div>
     </div>
   </div>
 
@@ -215,6 +217,71 @@
   <div class="log-entries" id="log-entries"></div>
 </div>
 
+<!-- QR camera scanner modal -->
+<div class="qr-scanner-overlay hidden" id="qr-scanner-modal">
+  <div class="qr-scanner-card">
+    <h3 style="font-family:'Cinzel',serif;color:var(--gold);margin-bottom:0.5rem">Scan Board QR Code</h3>
+    <p id="qr-status" style="color:var(--text-muted);font-size:0.82rem;margin-bottom:1rem">Point your camera at the QR code on the board</p>
+    <div class="qr-viewfinder">
+      <video id="qr-video" playsinline autoplay muted></video>
+      <canvas id="qr-canvas" style="display:none"></canvas>
+      <div class="qr-corner tl"></div>
+      <div class="qr-corner tr"></div>
+      <div class="qr-corner bl"></div>
+      <div class="qr-corner br"></div>
+    </div>
+    <button class="btn btn-outline" style="margin-top:1rem;width:100%" onclick="closeQrScanner()">Cancel</button>
+  </div>
+</div>
+
+<style>
+.qr-scanner-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+}
+.qr-scanner-overlay.hidden { display: none; }
+.qr-scanner-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  text-align: center;
+  width: 300px;
+}
+.qr-viewfinder {
+  position: relative;
+  width: 240px;
+  height: 240px;
+  margin: 0 auto;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #000;
+}
+.qr-viewfinder video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.qr-corner {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-color: var(--gold);
+  border-style: solid;
+  pointer-events: none;
+}
+.qr-corner.tl { top:8px; left:8px;  border-width:3px 0 0 3px; }
+.qr-corner.tr { top:8px; right:8px; border-width:3px 3px 0 0; }
+.qr-corner.bl { bottom:8px; left:8px;  border-width:0 0 3px 3px; }
+.qr-corner.br { bottom:8px; right:8px; border-width:0 3px 3px 0; }
+</style>
+
 <!-- Dice preference modal -->
 <div class="dice-pref-overlay hidden" id="dice-pref-modal">
   <div class="dice-pref-card">
@@ -253,6 +320,7 @@
 </style>
 
 <script src="/socket.io/socket.io.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script src="/js/game.js"></script>
 </body>
 </html>

@@ -458,6 +458,57 @@ socket.on('time-warp-used', ({ message }) => {
   document.getElementById('waiting-text').textContent = 'Time Warp used — ending turn...';
 });
 
+// ── QR camera scanner ────────────────────────────
+let _qrStream = null;
+let _qrFrame  = null;
+
+function openQrScanner() {
+  const modal = document.getElementById('qr-scanner-modal');
+  modal.classList.remove('hidden');
+  document.getElementById('qr-status').textContent = 'Point your camera at the QR code on the board';
+
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+    .then(stream => {
+      _qrStream = stream;
+      const video = document.getElementById('qr-video');
+      video.srcObject = stream;
+      video.play();
+      video.addEventListener('loadedmetadata', _qrScanLoop, { once: true });
+    })
+    .catch(() => {
+      document.getElementById('qr-status').textContent = 'Camera access denied — use Draw Card instead.';
+    });
+}
+
+function _qrScanLoop() {
+  const video  = document.getElementById('qr-video');
+  const canvas = document.getElementById('qr-canvas');
+  const ctx    = canvas.getContext('2d');
+
+  function tick() {
+    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+      canvas.width  = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const img  = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const code = typeof jsQR !== 'undefined' && jsQR(img.data, img.width, img.height);
+      if (code && code.data.includes('/game/scan-qr')) {
+        closeQrScanner();
+        scanCard();
+        return;
+      }
+    }
+    _qrFrame = requestAnimationFrame(tick);
+  }
+  _qrFrame = requestAnimationFrame(tick);
+}
+
+function closeQrScanner() {
+  if (_qrFrame)  { cancelAnimationFrame(_qrFrame); _qrFrame = null; }
+  if (_qrStream) { _qrStream.getTracks().forEach(t => t.stop()); _qrStream = null; }
+  document.getElementById('qr-scanner-modal').classList.add('hidden');
+}
+
 // ── Init ─────────────────────────────────────────
 updateBoard(myPos, oppPos);
 renderItems(MY_ITEMS);
